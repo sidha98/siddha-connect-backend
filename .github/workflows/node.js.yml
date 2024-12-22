@@ -34,7 +34,7 @@ jobs:
             sudo npm install -g pm2
 
             # Navigate to project directory
-            cd /root
+            # cd /root
 
             # Pull the latest code
             git pull origin main
