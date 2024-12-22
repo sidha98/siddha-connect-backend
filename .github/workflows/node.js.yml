@@ -23,7 +23,6 @@ jobs:
       # Step 3: Connect to EC2 instance and deploy
       - name: Deploy to EC2
         run: |
-          sudo su
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@3.108.84.213 << 'EOF'
             # Update the instance and install Node.js if necessary
             sudo yum update -y
@@ -33,14 +32,20 @@ jobs:
             # Install PM2 globally
             sudo npm install -g pm2
 
+            # Fix Git ownership and permissions
+            git config --global --add safe.directory /home/ec2-user/siddha-connect-backend
+
             # Navigate to project directory
             cd /home/ec2-user/siddha-connect-backend
 
             # Pull the latest code
             git pull origin main
 
-            # Install project dependencies
-            npm install
+            # Fix directory ownership (if needed)
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/siddha-connect-backend
+
+            # Install project dependencies with proper permissions
+            npm install --unsafe-perm=true
 
             # Restart the app using PM2
             pm2 delete all || true
@@ -49,4 +54,5 @@ jobs:
             # Save PM2 configuration
             pm2 save
             pm2 startup
+
           EOF
