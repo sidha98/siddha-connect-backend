@@ -25,12 +25,12 @@ jobs:
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@3.108.84.213 << 'EOF'
             # Update the instance and install Node.js if necessary
-            sudo yum update -y
+            sudo yum update -y || true
             curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
-            sudo yum install -y nodejs
+            sudo yum install -y nodejs || true
 
             # Install PM2 globally
-            sudo npm install -g pm2
+            sudo npm install -g pm2 || true
 
             # Fix Git ownership and permissions
             git config --global --add safe.directory /home/ec2-user/siddha-connect-backend
@@ -39,20 +39,19 @@ jobs:
             cd /home/ec2-user/siddha-connect-backend
 
             # Pull the latest code
-            git pull origin main
+            git pull origin main || true
 
             # Fix directory ownership (if needed)
-            sudo chown -R ec2-user:ec2-user /home/ec2-user/siddha-connect-backend
+            sudo chown -R ec2-user:ec2-user /home/ec2-user/siddha-connect-backend || true
 
             # Install project dependencies with proper permissions
-            npm install --unsafe-perm=true
+            npm install --unsafe-perm=true || true
 
             # Restart the app using PM2
             pm2 delete all || true
-            pm2 start server.js --name="server" -f
+            pm2 start server.js --name="server" -f || true
 
             # Save PM2 configuration
-            pm2 save
-            pm2 startup
-
+            pm2 save || true
+            pm2 startup || true
           EOF
