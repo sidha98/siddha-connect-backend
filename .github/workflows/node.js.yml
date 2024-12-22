@@ -23,6 +23,7 @@ jobs:
       # Step 3: Connect to EC2 instance and deploy
       - name: Deploy to EC2
         run: |
+          sudo su
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@3.108.84.213 << 'EOF'
             # Update the instance and install Node.js if necessary
             sudo yum update -y
