@@ -28,6 +28,6 @@ jobs:
             sudo su
             git pull origin main
             npm install
-            pm2 restart siddha-connect-backend || pm2 start server.js --name siddha-connect-backend
+            pm2 restart siddha-connect-v2 || pm2 start server.js --name siddha-connect-v2
             pm2 save
           EOF
