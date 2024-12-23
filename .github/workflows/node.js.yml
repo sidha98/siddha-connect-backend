@@ -24,34 +24,32 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@3.108.84.213 << 'EOF'
-            # Update the instance and install Node.js if necessary
-            sudo yum update -y || true
-            curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
-            sudo yum install -y nodejs || true
-
-            # Install PM2 globally
-            sudo npm install -g pm2 || true
-
-            # Fix Git ownership and permissions
-            git config --global --add safe.directory /home/ec2-user/siddha-connect-backend
+            # Check if Node.js and PM2 are installed, else install them
+            if ! [ -x "$(command -v node)" ]; then
+              curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
+              sudo yum install -y nodejs
+            fi
+            if ! [ -x "$(command -v pm2)" ]; then
+              sudo npm install -g pm2
+            fi
 
             # Navigate to project directory
             cd /home/ec2-user/siddha-connect-backend
 
             # Pull the latest code
-            git pull origin main || true
+            git pull origin main || exit 1
 
-            # Fix directory ownership (if needed)
-            sudo chown -R ec2-user:ec2-user /home/ec2-user/siddha-connect-backend || true
+            # Install project dependencies
+            npm install --unsafe-perm=true || exit 1
 
-            # Install project dependencies with proper permissions
-            npm install --unsafe-perm=true || true
+            # Load environment variables if required
+            [ -f .env ] && source .env || true
 
             # Restart the app using PM2
             pm2 delete all || true
-            pm2 start server.js --name="server" -f || true
+            pm2 start server.js --name="server" -f || exit 1
 
             # Save PM2 configuration
             pm2 save || true
-            pm2 startup || true
+            pm2 startup systemd -u ec2-user --hp /home/ec2-user || true
           EOF
