@@ -251,7 +251,7 @@ exports.addProductsFromCSV = async (req, res) => {
 exports.getAllProductsForDealer = async (req, res) => {
   try {
       const { query, segment, category, status, minPrice, maxPrice } = req.body; // Extract filters from query parameters
-      console.log("Reaching here!!! Wohoo!! :)")
+      console.log("Reaching here!!! Wohoo!! :) :)")
 
       // Log filters for debugging
       console.log("Filters received:", { query, segment, category, status, minPrice, maxPrice });

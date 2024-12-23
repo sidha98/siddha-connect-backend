@@ -24,31 +24,10 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@3.108.84.213 << 'EOF'
-            # Check if Node.js and PM2 are installed, else install them
-            if ! [ -x "$(command -v node)" ]; then
-              curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
-              sudo yum install -y nodejs
-            fi
-            if ! [ -x "$(command -v pm2)" ]; then
-              sudo npm install -g pm2
-            fi
-
-            # Navigate to project directory
             cd /home/ec2-user/siddha-connect-backend
-
-            # Stop the PM2 process
-            pm2 stop server || true
-
-            # Pull the latest code
-            git pull origin main || exit 1
-
-            # Install project dependencies
-            npm install --unsafe-perm=true || exit 1
-
-            # Start the PM2 process
-            pm2 start server || exit 1
-
-            # Save PM2 configuration
-            pm2 save || true
-            pm2 startup systemd -u ec2-user --hp /home/ec2-user || true
+            sudo su
+            git pull origin main
+            npm install
+            pm2 restart siddha-connect-backend || pm2 start server.js --name siddha-connect-backend
+            pm2 save
           EOF
