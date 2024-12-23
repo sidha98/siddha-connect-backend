@@ -1,6 +1,6 @@
 const csvParser = require("csv-parser");
 const { Readable } = require("stream");
-const xlsx = require("xlsx");
+// const xlsx = require("xlsx");
 const Data = require("../models/SalesData");
 const SalesData = require("../models/SalesData");
 const { getLastDaysOfPreviousMonths, channelOrder, getDaysElapsedInMonth, getDaysRemainingInMonth, getDaysElapsedInRange, getDaysRemainingInMonthFromDate, calculateTarget, getStartOfMonth, getLastMonthPeriod, formatNumberIndian, parseDate  } = require("../helpers/salesHelpers");
@@ -55,24 +55,28 @@ exports.uploadSalesData = async (req, res) => {
             res.status(500).send("Error inserting data into database");
           }
         });
-    } else if (req.file.originalname.endsWith(".xlsx")) {
-      // Parse XLSX file
-      const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      results = xlsx.utils.sheet_to_json(sheet);
+    } 
+    
+    // else if (req.file.originalname.endsWith(".xlsx")) {
+    //   // Parse XLSX file
+    //   const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+    //   const sheetName = workbook.SheetNames[0];
+    //   const sheet = workbook.Sheets[sheetName];
+    //   results = xlsx.utils.sheet_to_json(sheet);
 
-      try {
-        // Insert data into MongoDB
-        await SalesData.insertMany(results);
-        res.status(200).send({
-          message: "Data inserted successfully"
-        });
-      } catch (error) {
-        console.log(error);
-        res.status(500).send("Error inserting data into database");
-      }
-    } else {
+    //   try {
+    //     // Insert data into MongoDB
+    //     await SalesData.insertMany(results);
+    //     res.status(200).send({
+    //       message: "Data inserted successfully"
+    //     });
+    //   } catch (error) {
+    //     console.log(error);
+    //     res.status(500).send("Error inserting data into database");
+    //   }
+    // } 
+    
+    else {
       res.status(400).send("Unsupported file format");
     }
   } catch (error) {
