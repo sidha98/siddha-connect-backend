@@ -36,18 +36,17 @@ jobs:
             # Navigate to project directory
             cd /home/ec2-user/siddha-connect-backend
 
+            # Stop the PM2 process
+            pm2 stop server || true
+
             # Pull the latest code
             git pull origin main || exit 1
 
             # Install project dependencies
             npm install --unsafe-perm=true || exit 1
 
-            # Load environment variables if required
-            [ -f .env ] && source .env || true
-
-            # Restart the app using PM2
-            pm2 delete all || true
-            pm2 start server.js --name="server" -f || exit 1
+            # Start the PM2 process
+            pm2 start server || exit 1
 
             # Save PM2 configuration
             pm2 save || true
