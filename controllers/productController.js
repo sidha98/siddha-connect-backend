@@ -45,7 +45,7 @@ function getSegmentByPrice(price, category) {
     if (price >= 10000) return "10-15K";
     if (price >= 6000) return "6-10K";
     return "< 6K"; 
-  }
+  } 
 }
 
 
@@ -250,8 +250,8 @@ exports.addProductsFromCSV = async (req, res) => {
 
 exports.getAllProductsForDealer = async (req, res) => {
   try {
-      const { query, segment, category, status, minPrice, maxPrice } = req.body; // Extract filters from query parameters
-      console.log("Reaching here!!! Wohoo!! :) :) :) :)")
+      const { query, segment, category, status, minPrice, maxPrice } = req.body; 
+      console.log("Reaching here!!! Wohoo!! :) :) :) :) ")
 
       // Log filters for debugging
       console.log("Filters received:", { query, segment, category, status, minPrice, maxPrice });

@@ -9,6 +9,6 @@ router.get("/product/get-all-products", getAllProducts);
 
 router.post("/product/add-by-csv", upload.single("file"), addProductsFromCSV);
 
-router.get("/product/dealer/all", getAllProductsForDealer)
+router.post("/product/dealer/all", getAllProductsForDealer)
 
 module.exports = router;
