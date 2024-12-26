@@ -45,4 +45,27 @@ exports.createOrder = async (req, res) => {
   }
 };
   
+
+exports.getOrdersForDealers = async (req, res) => {
+  try {
+    const { dealerCode } = req; // Extract dealerCode from request parameters
+
+    if (!dealerCode) {
+      return res.status(400).json({ error: 'Dealer code is required' });
+    }
+
+    // Fetch all orders for the given dealer code
+    const orders = await Order.find({ DealerCode: dealerCode }).sort({ OrderDate: -1 }); // Sort by OrderDate (most recent first)
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: 'No orders found for this dealer' });
+    }
+
+    // Respond with the orders
+    return res.status(200).json({ message: 'Orders retrieved successfully', orders });
+  } catch (error) {
+    console.error('Error retrieving orders:', error.message || error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
   
