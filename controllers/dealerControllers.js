@@ -193,7 +193,9 @@ exports.editDealer = async (req, res) => {
       anniversaryDate,
       otherImportantFamilyDates,
       businessDetails,
-      specialNotes
+      specialNotes,
+      latitude,
+      longitude
     } = req.body;
 
     // Validate dealer ID
@@ -238,6 +240,8 @@ exports.editDealer = async (req, res) => {
       if (businessDetails.preferredCommunicationMethod) dealer.businessDetails.preferredCommunicationMethod = businessDetails.preferredCommunicationMethod;
     }
     if (specialNotes) dealer.specialNotes = specialNotes;
+    if (latitude) dealer.latitude = latitude;
+    if(longitude) dealer.longitude = longitude;
 
     // Save the updated dealer information
     await dealer.save();
@@ -253,7 +257,9 @@ exports.editDealer = async (req, res) => {
         anniversaryDate: dealer.anniversaryDate,
         otherImportantFamilyDates: dealer.otherImportantFamilyDates,
         businessDetails: dealer.businessDetails,
-        specialNotes: dealer.specialNotes
+        specialNotes: dealer.specialNotes,
+        latitude: dealer.latitude,
+        longitude: dealer.longitude
       }
     });
   } catch (error) {
