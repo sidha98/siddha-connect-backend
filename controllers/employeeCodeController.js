@@ -54,3 +54,39 @@ exports.uploadEmployeeCodes = async (req, res) => {
         res.status(500).send("Internal server error");
     }
 };
+
+exports.addEmployeeCode = async (req, res) => {
+    try {
+        // Destructure required fields from the request body
+        const { Name, Position, Code } = req.body;
+
+        // Validate input fields
+        if (!Name || !Position || !Code) {
+            return res.status(400).json({ error: "Name, Position, and Code are required fields." });
+        }
+
+        // Check if the code already exists in the database
+        const existingEmployee = await EmployeeCode.findOne({ Code });
+        if (existingEmployee) {
+            return res.status(400).json({ error: "Employee with this code already exists." });
+        }
+
+        // Create a new employee code document
+        const newEmployeeCode = new EmployeeCode({
+            Name,
+            Position,
+            Code
+        });
+
+        // Save the new employee code to the database
+        await newEmployeeCode.save();
+
+        return res.status(201).json({
+            message: "Employee code added successfully.",
+            data: newEmployeeCode
+        });
+    } catch (error) {
+        console.error("Error adding employee code:", error);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+};
