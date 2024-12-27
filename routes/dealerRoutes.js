@@ -1,5 +1,5 @@
 const express = require("express");
-const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers } = require("../controllers/dealerControllers");
+const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers } = require("../controllers/dealerControllers");
 const router = express.Router();
 const { userAuth, dealerAuth } = require("../middlewares/authMiddlewares");
 const { upload } = require("../services/fileUpload");
@@ -23,5 +23,8 @@ router.put("/update-dealer-categories", upload.single("file"), updateDealerCateg
 
 // Update dealer addresses
 router.put("/add-default-address-to-dealers", addDefaultAddressToDealers);
+
+//add cordinate fields to dealers
+router.put("/add-coordinate-fields-to-dealers", addCoordinateFieldsToDealers);
 
 module.exports = router;

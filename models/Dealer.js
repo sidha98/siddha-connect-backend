@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model, default: mongoose } = require('mongoose');
 
 const dealerSchema = new Schema({
   dealerCode: {
@@ -117,6 +117,12 @@ const dealerSchema = new Schema({
     type: String,
     default: 'N/A' // Add a default value if needed
   },
+  latitude: {
+    type: mongoose.Schema.Types.Decimal128
+  },
+  longitude: {
+    type: mongoose.Schema.Types.Decimal128
+  }
 }, {
   timestamps: true,
   strict: false

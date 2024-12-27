@@ -616,3 +616,35 @@ exports.addDefaultAddressToDealers = async (req, res) => {
   }
 };
 
+exports.addCoordinateFieldsToDealers = async (req, res) => {
+  try {
+    // Find all dealers where latitude or longitude is not set
+    const dealers = await Dealer.find({
+      $or: [
+        { latitude: { $exists: false } },
+        { longitude: { $exists: false } }
+      ]
+    });
+
+    if (dealers.length === 0) {
+      return res.status(200).json({ message: 'All dealers already have latitude and longitude fields.' });
+    }
+
+    // Update each dealer to include latitude and longitude if missing
+    for (const dealer of dealers) {
+      if (!dealer.latitude) dealer.latitude = "26.937941"; // Set default empty string
+      if (!dealer.longitude) dealer.longitude = "75.796671"; // Set default empty string
+      await dealer.save(); // Save updated dealer
+    }
+
+    return res.status(200).json({
+      message: 'Latitude and longitude fields added to dealers successfully.',
+      updatedCount: dealers.length
+    });
+  } catch (error) {
+    console.error('Error adding latitude and longitude fields:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
