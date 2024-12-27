@@ -5835,7 +5835,7 @@ exports.getAllSubordinatesMTDW = async (req, res) => {
     // console.log("Name & Position: ", name, position);
 
     const positionsHierarchy = {
-      OWN: ["ZSM", "ABM", "RSO", "ASE", "ASM", "TSE"],
+      OWN: ["MDD NAME", "ZSM", "ABM", "RSO", "ASE", "ASM", "TSE"],
       BM: ["ZSM", "ABM", "RSO", "ASE", "ASM", "TSE"],
       MIS: ["ZSM", "ABM", "RSO", "ASE", "ASM", "TSE"],
       FIN: ["ZSM", "ABM", "RSO", "ASE", "ASM", "TSE"],
