@@ -122,6 +122,9 @@ const dealerSchema = new Schema({
   },
   longitude: {
     type: mongoose.Schema.Types.Decimal128
+  },
+  credit_limit: {
+    type: Number
   }
 }, {
   timestamps: true,

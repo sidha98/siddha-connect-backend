@@ -653,4 +653,31 @@ exports.addCoordinateFieldsToDealers = async (req, res) => {
   }
 };
 
+exports.addCreditLimitToDealers = async(req, res) => {
+  try{
+    const dealers = await Dealer.find({
+      $or: [
+        {credit_limit: { $exists: false }}
+      ]
+    });
+
+    if (dealers.length === 0){
+      return res.status(200).json({message: 'All dealers have credit limits'})
+    }
+
+    for (const dealer of dealers){
+      if (!dealer.credit_limit) dealer.credit_limit = "1000000";
+      await dealer.save();
+    }
+
+    return res.status(200).json({
+      message: 'Credit limits added successfully.',
+      updatedCount: dealers.length
+    })
+  } catch(error){
+    console.error("Error adding credit limits: ", error);
+    return res.status(500).json({ error: 'Internal Server Error'})
+  }
+}
+
 
