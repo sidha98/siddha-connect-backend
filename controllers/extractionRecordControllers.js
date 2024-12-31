@@ -1295,7 +1295,7 @@ exports.getExtractionDataModelWiseForAdmins = async (req, res) => {
         const nonSamsungFilter = { date: { $gte: currentStartDate, $lte: currentEndDate } };
         const samsungFilter = {
             'SALES TYPE': 'Sell Out',
-            'MDD NAME': 'SIDDHA CORPORATION',
+            'MDD': 'SIDDHA CORPORATION',
             DATE: {
                 $gte: `${samsungStartDate.getMonth() + 1}/1/${samsungStartDate.getFullYear()}`,
                 $lte: `${samsungEndDate.getMonth() + 1}/${samsungEndDate.getDate()}/${samsungEndDate.getFullYear()}`
