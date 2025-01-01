@@ -680,4 +680,72 @@ exports.addCreditLimitToDealers = async(req, res) => {
   }
 }
 
+exports.updateCreditLimitFromCSV = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).send("No file uploaded");
+    }
+
+    let csvData = [];
+
+    if (req.file.originalname.endsWith(".csv")) {
+      // Create a readable stream from the uploaded CSV buffer
+      const stream = new Readable();
+      stream.push(req.file.buffer);
+      stream.push(null);
+
+      // Parse CSV and collect rows in memory
+      stream
+        .pipe(csvParser())
+        .on("data", (data) => {
+          csvData.push(data);
+        })
+        .on("end", async () => {
+          try {
+            // Initialize counters
+            let updatedCount = 0;
+            let unmatchedCount = 0;
+
+            for (const row of csvData) {
+              const dealerCode = row['dealerCode'];
+              const newCreditLimit = parseFloat(row['credit_limit']);
+
+              if (!dealerCode || isNaN(newCreditLimit)) {
+                continue; // Skip rows with invalid data
+              }
+
+              // Find the dealer in the database
+              const dealer = await Dealer.findOne({ dealerCode });
+
+              if (dealer) {
+                // Update the credit limit
+                dealer.credit_limit = newCreditLimit;
+                await dealer.save();
+                updatedCount++;
+              } else {
+                unmatchedCount++;
+              }
+            }
+
+            // Return the result with counts
+            return res.status(200).send({
+              message: "Credit limits updated successfully.",
+              totalRows: csvData.length,
+              updatedDealers: updatedCount,
+              unmatchedDealers: unmatchedCount,
+            });
+          } catch (error) {
+            console.error("Error processing CSV: ", error);
+            return res.status(500).send("Error processing CSV and updating credit limits.");
+          }
+        });
+    } else {
+      res.status(400).send("Unsupported file format. Please upload a CSV file.");
+    }
+  } catch (error) {
+    console.error("Internal server error: ", error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
 
