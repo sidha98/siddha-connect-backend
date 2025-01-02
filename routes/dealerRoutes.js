@@ -1,5 +1,5 @@
 const express = require("express");
-const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV } = require("../controllers/dealerControllers");
+const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD } = require("../controllers/dealerControllers");
 const router = express.Router();
 const { userAuth, dealerAuth } = require("../middlewares/authMiddlewares");
 const { upload } = require("../services/fileUpload");
@@ -30,5 +30,8 @@ router.put("/add-coordinate-fields-to-dealers", addCoordinateFieldsToDealers);
 //add credit limit to dealer
 router.put("/add-default-credit-limits", addCreditLimitToDealers);
 router.put("/add-credit-limit-csv", upload.single("file"), updateCreditLimitFromCSV);
+
+// MDD 
+router.get("/fetch-credit-limit", dealerAuth, fetchCreditLimitForMDD);
 
 module.exports = router;

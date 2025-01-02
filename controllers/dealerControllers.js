@@ -748,4 +748,42 @@ exports.updateCreditLimitFromCSV = async (req, res) => {
   }
 };
 
+exports.fetchCreditLimitForMDD = async (req, res) => {
+  try {
+      const { dealerCode } = req;
+
+      // Validate that dealerCode is provided
+      if (!dealerCode) {
+          return res.status(400).json({ success: false, message: "Dealer code is required." });
+      }
+
+      // Find the dealer by dealerCode
+      const dealer = await Dealer.findOne({ dealerCode }).lean();
+
+      // If dealer is not found
+      if (!dealer) {
+          return res.status(404).json({ success: false, message: "Dealer not found." });
+      }
+
+      // Check if dealerCategory is MDD
+      if (dealer.dealerCategory !== "MDD") {
+          return res.status(403).json({ success: false, message: "Dealer is not in the MDD category." });
+      }
+
+      // Return the credit limit
+      return res.status(200).json({
+          success: true,
+          message: "Credit limit retrieved successfully.",
+          data: {
+              creditLimit: dealer.credit_limit,
+              dealerCategory: dealer.dealerCategory
+          }
+      });
+  } catch (error) {
+      console.error("Error fetching credit limit:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
 
