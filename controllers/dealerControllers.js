@@ -776,7 +776,9 @@ exports.fetchCreditLimitForMDD = async (req, res) => {
           message: "Credit limit retrieved successfully.",
           data: {
               creditLimit: dealer.credit_limit,
-              dealerCategory: dealer.dealerCategory
+              dealerCategory: dealer.dealerCategory,
+              shopName: dealer.shopName,
+              dealer_code: dealer.dealerCode
           }
       });
   } catch (error) {

@@ -308,6 +308,8 @@ exports.login = async (req, res) => {
     let user;
     let tokenPayload = {};
     let isSiddhaAdmin = false;
+    let dealerCategory = "";
+    let shopName="";
 
     // Check role and retrieve the appropriate user
     if (role === "employee") {
@@ -339,6 +341,7 @@ exports.login = async (req, res) => {
         return res.status(401).json({ error: "Dealer not registered with this code" });
       }
       user = dealer; // Assign dealer object to user for consistent handling
+      dealerCategory = dealer.dealerCategory;
 
       // Set token payload for dealer
       tokenPayload = {
@@ -369,6 +372,7 @@ exports.login = async (req, res) => {
       verified: user.verified || false, // Default to true if not present in dealer
       position: user.position || "Dealer", // Default to 'Dealer' for dealers
       is_siddha_admin: isSiddhaAdmin,
+      dealer_category: dealerCategory
     });
   } catch (error) {
     console.error(error);
