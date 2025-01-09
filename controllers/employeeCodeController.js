@@ -90,3 +90,66 @@ exports.addEmployeeCode = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
+exports.updateEmployeeCodesFromCSV = async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).send("No file uploaded");
+      }
+  
+      let results = [];
+  
+      if (req.file.originalname.endsWith(".csv")) {
+        const stream = new Readable();
+        stream.push(req.file.buffer);
+        stream.push(null);
+  
+        stream
+          .pipe(csvParser())
+          .on("data", (data) => {
+            results.push(data);
+          })
+          .on("end", async () => {
+            try {
+              let updateCount = 0;
+              let insertCount = 0;
+  
+              for (let row of results) {
+                const code = row["Code"];
+                const name = row["Name"];
+                const position = row["Position"];
+  
+                if (!code || !name || !position) continue; // Skip rows with missing data
+  
+                // Use findOneAndUpdate to update the record if it exists, or insert if it does not
+                const updatedEmployee = await EmployeeCode.findOneAndUpdate(
+                  { Code: code }, // Filter
+                  { $set: { Name: name, Position: position } }, // Update fields
+                  { new: true, upsert: true } // Options: Return the updated document, create if not exists
+                );
+  
+                if (updatedEmployee) {
+                  if (updatedEmployee.wasNew) {
+                    insertCount++;
+                  } else {
+                    updateCount++;
+                  }
+                }
+              }
+  
+              res.status(200).send(
+                `${updateCount} records updated and ${insertCount} records added successfully.`
+              );
+            } catch (error) {
+              console.error(error);
+              res.status(500).send("Error updating or adding records in the database");
+            }
+          });
+      } else {
+        res.status(400).send("Unsupported file format");
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
+    }
+  };
