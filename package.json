@@ -23,11 +23,13 @@
     "googleapis": "^105.0.0",
     "http-proxy-middleware": "^2.0.6",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
     "mongoose": "^8.0.3",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.9",
     "stream": "^0.0.2",
-    "telesignsdk": "^2.2.3"
+    "telesignsdk": "^2.2.3",
+    "xml2js": "^0.6.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
