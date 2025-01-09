@@ -146,6 +146,160 @@ exports.addDefaultAddressToDealerListTseWise = async (req, res) => {
   }
 };
 
+// exports.updateDealerListTSEWiseFromCSV = async (req, res) => {
+//   try {
+//     if (!req.file) {
+//       return res.status(400).send("No file uploaded");
+//     }
+
+//     const results = [];
+
+//     if (req.file.originalname.endsWith(".csv")) {
+//       const stream = new Readable();
+//       stream.push(req.file.buffer);
+//       stream.push(null);
+
+//       stream
+//         .pipe(csvParser())
+//         .on("data", (data) => {
+//           results.push(data);
+//         })
+//         .on("end", async () => {
+//           try {
+//             let updatedCount = 0;
+//             let notFoundCount = 0;
+//             const notFoundDealers = [];
+
+//             for (const data of results) {
+//               const dealerCode = data["Dealer Code"];
+//               console.log("Processing Dealer Code:", dealerCode);
+
+//               if (!dealerCode) {
+//                 console.log("Skipping row due to missing Dealer Code:", data);
+//                 continue;
+//               }
+
+//               // Find existing dealer by Dealer Code
+//               const existingRecord = await DealerListTseWise.findOne({ "Dealer Code": dealerCode });
+
+//               if (existingRecord) {
+//                 // Use Object.assign to update all fields dynamically
+//                 Object.assign(existingRecord, data);
+
+//                 // Recalculate and update iuid
+//                 existingRecord.iuid = Object.values(data)
+//                   .map((value) => (value ? value : ""))
+//                   .join("|");
+
+//                 try {
+//                   console.log("Before Save - Existing Record:", existingRecord);
+//                   await existingRecord.save(); // Save the updated record
+//                   console.log("After Save - Updated Record:", existingRecord);
+//                   updatedCount++;
+//                 } catch (saveError) {
+//                   console.error("Error saving record for Dealer Code:", dealerCode, saveError);
+//                 }
+//               } else {
+//                 console.log(`Dealer Code ${dealerCode} not found in database.`);
+//                 notFoundDealers.push(dealerCode);
+//                 notFoundCount++;
+//               }
+//             }
+
+//             // Log summary and send response
+//             console.log(`Updated ${updatedCount} dealers.`);
+//             console.log(`Could not find ${notFoundCount} dealers.`, notFoundDealers);
+
+//             res.status(200).json({
+//               message: "Dealer data updated successfully.",
+//               updatedCount,
+//               notFoundCount,
+//               notFoundDealers,
+//             });
+//           } catch (error) {
+//             console.error("Error processing CSV data:", error);
+//             res.status(500).send("Error processing dealer data.");
+//           }
+//         });
+//     } else {
+//       res.status(400).send("Unsupported file format. Please upload a CSV file.");
+//     }
+//   } catch (error) {
+//     console.error("Internal server error:", error);
+//     res.status(500).send("Internal server error");
+//   }
+// };
+
+exports.updateDealerListTSEWiseFromCSV = async (req, res) => {
+  try {
+      if (!req.file) {
+          return res.status(400).send("No file uploaded");
+      }
+
+      let results = [];
+
+      if (req.file.originalname.endsWith(".csv")) {
+          const stream = new Readable();
+          stream.push(req.file.buffer);
+          stream.push(null);
+          
+          stream
+              .pipe(csvParser())
+              .on("data", (data) => {
+                  results.push(data);
+              })
+              .on("end", async () => {
+                  try {
+                      let updateCount = 0;
+
+                      for (let row of results) {
+                          const dealerCode = row["Dealer Code"];
+
+                          if (!dealerCode) continue; // Skip rows without Dealer Code
+
+                          // Use findOneAndUpdate to update the record
+                          const updatedRecord = await DealerListTseWise.findOneAndUpdate(
+                              { "Dealer Code": dealerCode }, // Filter
+                              {
+                                  $set: {
+                                      TYPE: row.TYPE,
+                                      Area: row.Area,
+                                      TSE: row.TSE,
+                                      ASM: row.ASM,
+                                      ABM: row.ABM,
+                                      ZSM: row.ZSM,
+                                  },
+                              },
+                              { new: true, upsert: false } // Options: Return the updated document, no upsert
+                          );
+
+                          if (updatedRecord) {
+                              updateCount++;
+                          }
+                      }
+
+                      res.status(200).send(`${updateCount} records updated successfully.`);
+                  } catch (error) {
+                      console.error(error);
+                      res.status(500).send("Error updating records in the database");
+                  }
+              });
+      } else {
+          res.status(400).send("Unsupported file format");
+      }
+  } catch (error) {
+      console.error(error);
+      res.status(500).send("Internal server error");
+  }
+};
+
+
+
+
+
+
+
+
   
 
 
