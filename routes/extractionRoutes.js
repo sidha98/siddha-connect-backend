@@ -1,6 +1,6 @@
 const express = require("express");
 const { userAuth } = require("../middlewares/authMiddlewares");
-const { addExtractionRecord, getAllExtractionRecords, getExtractionDataForEmployee, getExtractionRecordsForAMonth, getExtractionReportForAdmins, getBrandComparisonReport, getSegmentAnalysisReport, getDealerPerformanceReport, getUniqueColumnValues, getExtractionDataForAdminWithFilters, getExtractionOverviewForAdmins, getExtractionDataModelWiseForAdmins } = require("../controllers/extractionRecordControllers");
+const { addExtractionRecord, getAllExtractionRecords, getExtractionDataForEmployee, getExtractionRecordsForAMonth, getExtractionReportForAdmins, getBrandComparisonReport, getSegmentAnalysisReport, getDealerPerformanceReport, getUniqueColumnValues, getExtractionDataForAdminWithFilters, getExtractionOverviewForAdmins, getExtractionDataModelWiseForAdmins, addUpdatedUploadersInExtractionRecords } = require("../controllers/extractionRecordControllers");
 const router = express.Router();
 
 
@@ -18,5 +18,8 @@ router.get("/extraction/unique-column-values", getUniqueColumnValues);
 router.get("/extraction/filtered-data", getExtractionDataForAdminWithFilters);
 router.get("/extraction/overview-for-admins", getExtractionOverviewForAdmins);
 router.get("/extraction/data-model-wise-for-admins", getExtractionDataModelWiseForAdmins)
+
+// utilities 
+router.put("/add-updated-uploaders-in-extraction-records", addUpdatedUploadersInExtractionRecords);
 
 module.exports = router;

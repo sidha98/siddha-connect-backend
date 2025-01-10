@@ -375,7 +375,7 @@ exports.getExtractionRecordsForAMonth = async (req, res) => {
         for (const record of extractionRecords) {
             const dealerCode = record.dealerCode;
             const productId = record.productId._id;
-            const uploadedBy = record.uploadedBy;
+            const uploadedBy = record.updated_uploader;
 
             // Create a unique key for each dealer, product, and employee combination
             const key = `${dealerCode}-${productId}-${uploadedBy}`;
@@ -1265,17 +1265,6 @@ exports.getExtractionOverviewForAdmins = async (req, res) => {
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
 exports.getExtractionDataModelWiseForAdmins = async (req, res) => {
     try {
         const { startDate, endDate, valueVolume = 'value', brand, segment, area, zsm, rso, asm, ase, abm, tse, dealerCode, type, page = 1, limit = 100, showShare = 'false' } = req.query;
@@ -1391,20 +1380,76 @@ exports.getExtractionDataModelWiseForAdmins = async (req, res) => {
 
 
 
+exports.addUpdatedUploadersInExtractionRecords = async (req, res) => {
+    try {
+        // Fetch all extraction records
+        const extractionRecords = await ExtractionRecord.find();
+
+        if (!extractionRecords || extractionRecords.length === 0) {
+            return res.status(404).json({ error: 'No extraction records found.' });
+        }
+
+        let updatedRecords = [];
+
+        for (const record of extractionRecords) {
+            const { dealerCode } = record;
+
+            // Fetch the dealer details from dealerListTseWise
+            const dealer = await DealerListTseWise.findOne({ "Dealer Code": dealerCode });
+
+            if (!dealer || !dealer.TSE) {
+                console.log(`No TSE found for dealerCode: ${dealerCode}`);
+                continue; // Skip this record if TSE is not found
+            }
+
+            const tseName = dealer.TSE;
+
+            // Fetch the employee code from EmployeeCode model
+            const employee = await EmployeeCode.findOne({ Name: tseName });
+
+            if (!employee || !employee.Code) {
+                console.log(`No TSE code found for TSE: ${tseName}`);
+                continue; // Skip this record if employee code is not found
+            }
+
+            const tseCode = employee.Code;
+
+            // Add the updated_uploader field
+            record.updated_uploader = tseCode;
+
+            // Save the updated record to the database
+            const updatedRecord = await record.save();
+
+            // Push the updated record details for the response
+            updatedRecords.push({
+                _id: updatedRecord._id,
+                productId: updatedRecord.productId,
+                dealerCode: updatedRecord.dealerCode,
+                date: updatedRecord.date,
+                quantity: updatedRecord.quantity,
+                uploadedBy: updatedRecord.uploadedBy,
+                totalPrice: updatedRecord.totalPrice,
+                updated_uploader: updatedRecord.updated_uploader,
+                remarks: updatedRecord.remarks || null
+            });
+        }
+
+        // If no records were updated
+        if (updatedRecords.length === 0) {
+            return res.status(404).json({ error: 'No records updated. Ensure the dealerCode and TSE mappings are correct.' });
+        }
+
+        return res.status(200).json({
+            message: 'Extraction records updated successfully.',
+            updatedRecords
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
 
 
-
-
-
-
-
-
-
-
-
-
-
-// Helper function to determine price class based on price
 function getPriceClass(price) {
     if (price < 6000) return '<6k';
     if (price >= 6000 && price <= 10000) return '6-10k';
