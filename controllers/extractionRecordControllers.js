@@ -1378,15 +1378,33 @@ exports.getExtractionDataModelWiseForAdmins = async (req, res) => {
     }
 };
 
-
-
 exports.addUpdatedUploadersInExtractionRecords = async (req, res) => {
     try {
-        // Fetch all extraction records
-        const extractionRecords = await ExtractionRecord.find();
+        // Extract start date and end date from query parameters
+        const { startDate, endDate } = req.query;
+
+        // Validate dates
+        if (!startDate || !endDate) {
+            return res.status(400).json({ error: 'Please provide both startDate and endDate in the query parameters.' });
+        }
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (isNaN(start) || isNaN(end)) {
+            return res.status(400).json({ error: 'Invalid date format. Please provide valid startDate and endDate.' });
+        }
+
+        // Fetch extraction records within the date range
+        const extractionRecords = await ExtractionRecord.find({
+            date: {
+                $gte: start,
+                $lte: end
+            }
+        });
 
         if (!extractionRecords || extractionRecords.length === 0) {
-            return res.status(404).json({ error: 'No extraction records found.' });
+            return res.status(404).json({ error: 'No extraction records found within the specified date range.' });
         }
 
         let updatedRecords = [];
@@ -1448,6 +1466,78 @@ exports.addUpdatedUploadersInExtractionRecords = async (req, res) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
+
+// WO DATE RANE
+
+// exports.addUpdatedUploadersInExtractionRecords = async (req, res) => {
+//     try {
+//         // Fetch all extraction records
+//         const extractionRecords = await ExtractionRecord.find();
+
+//         if (!extractionRecords || extractionRecords.length === 0) {
+//             return res.status(404).json({ error: 'No extraction records found.' });
+//         }
+
+//         let updatedRecords = [];
+
+//         for (const record of extractionRecords) {
+//             const { dealerCode } = record;
+
+//             // Fetch the dealer details from dealerListTseWise
+//             const dealer = await DealerListTseWise.findOne({ "Dealer Code": dealerCode });
+
+//             if (!dealer || !dealer.TSE) {
+//                 console.log(`No TSE found for dealerCode: ${dealerCode}`);
+//                 continue; // Skip this record if TSE is not found
+//             }
+
+//             const tseName = dealer.TSE;
+
+//             // Fetch the employee code from EmployeeCode model
+//             const employee = await EmployeeCode.findOne({ Name: tseName });
+
+//             if (!employee || !employee.Code) {
+//                 console.log(`No TSE code found for TSE: ${tseName}`);
+//                 continue; // Skip this record if employee code is not found
+//             }
+
+//             const tseCode = employee.Code;
+
+//             // Add the updated_uploader field
+//             record.updated_uploader = tseCode;
+
+//             // Save the updated record to the database
+//             const updatedRecord = await record.save();
+
+//             // Push the updated record details for the response
+//             updatedRecords.push({
+//                 _id: updatedRecord._id,
+//                 productId: updatedRecord.productId,
+//                 dealerCode: updatedRecord.dealerCode,
+//                 date: updatedRecord.date,
+//                 quantity: updatedRecord.quantity,
+//                 uploadedBy: updatedRecord.uploadedBy,
+//                 totalPrice: updatedRecord.totalPrice,
+//                 updated_uploader: updatedRecord.updated_uploader,
+//                 remarks: updatedRecord.remarks || null
+//             });
+//         }
+
+//         // If no records were updated
+//         if (updatedRecords.length === 0) {
+//             return res.status(404).json({ error: 'No records updated. Ensure the dealerCode and TSE mappings are correct.' });
+//         }
+
+//         return res.status(200).json({
+//             message: 'Extraction records updated successfully.',
+//             updatedRecords
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// };
 
 
 function getPriceClass(price) {
