@@ -765,10 +765,10 @@ exports.fetchCreditLimitForMDD = async (req, res) => {
           return res.status(404).json({ success: false, message: "Dealer not found." });
       }
 
-      // Check if dealerCategory is MDD
-      if (dealer.dealerCategory !== "MDD") {
-          return res.status(403).json({ success: false, message: "Dealer is not in the MDD category." });
-      }
+      // // Check if dealerCategory is MDD
+      // if (dealer.dealerCategory !== "MDD") {
+      //     return res.status(403).json({ success: false, message: "Dealer is not in the MDD category." });
+      // }
 
       // Return the credit limit
       return res.status(200).json({
