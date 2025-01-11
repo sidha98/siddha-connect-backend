@@ -827,5 +827,41 @@ exports.updateDealerGeoTagForEmployee = async (req, res) => {
  }
 };
 
+exports.getUpdatedGeoTagForEmployee = async (req, res) => {
+ try {
+   const { dealerCode } = req.query;
 
+   if (!dealerCode) {
+     return res.status(400).json({
+       success: false,
+       message: "DealerCode is required as a query parameter.",
+     });
+   }
+   const dealer = await Dealer.findOne({ dealerCode });
+
+   if (!dealer) {
+     return res.status(404).json({
+       success: false,
+       message: "Dealer not found",
+     });
+   }
+   const { latitude, longitude } = dealer;
+
+   return res.status(200).json({
+     success: true,
+     message: "Dealer geotag fetched successfully",
+     data: {
+       dealerCode,
+       latitude,
+       longitude,
+     },
+   });
+ } catch (error) {
+   console.error("Error fetching dealer geotag:", error);
+   return res.status(500).json({
+     success: false,
+     message: "Internal Server Error",
+   });
+ }
+};
 

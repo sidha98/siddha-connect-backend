@@ -1,5 +1,5 @@
 const express = require("express");
-const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee } = require("../controllers/dealerControllers");
+const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee } = require("../controllers/dealerControllers");
 const router = express.Router();
 const { userAuth, dealerAuth } = require("../middlewares/authMiddlewares");
 const { upload } = require("../services/fileUpload");
@@ -37,5 +37,6 @@ router.get("/fetch-credit-limit", dealerAuth, fetchCreditLimitForMDD);
 
 // created by nameera 
 router.put("/updateDealerGeoTagForEmployee", updateDealerGeoTagForEmployee);
+router.get("/getUpdatedGeoTagForEmployee" , getUpdatedGeoTagForEmployee);
 
 module.exports = router;
