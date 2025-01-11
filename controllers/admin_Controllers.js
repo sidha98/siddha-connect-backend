@@ -1,71 +1,12 @@
+const Dealer = require("../models/Dealer");
+const EmployeeCode = require("../models/EmployeeCode");
 const ExtractionRecord = require("../models/ExtractionRecord");
+const ModelData = require("../models/ModelData");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const SalesDataMTDW = require("../models/SalesDataMTDW");
 const SegmentTarget = require("../models/SegmentTarget");
 const User = require("../models/User");
-
-// extraction  Records controller 
-exports.editExtraction = async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const updates = req.body; 
-
-
-    if (!id) {
-      return res
-        .status(400)
-        .json({ message: "Extraction record ID is required." });
-    }
-
-
-    const updatedRecord = await ExtractionRecord.findByIdAndUpdate(
-      id,
-      updates,
-      {
-        new: true, 
-        runValidators: true, 
-      }
-    );
-
-    if (!updatedRecord) {
-      return res.status(404).json({ message: "Extraction record not found." });
-    }
-
-    res.status(200).json({
-      message: "Extraction record updated successfully.",
-      data: updatedRecord,
-    });
-  } catch (error) {
-    console.error("Error in editing extraction:", error);
-    res.status(500).json({ message: "Internal server error." });
-  }
-};
-exports.deleteExtraction = async (req, res) => {
- try {
-     const { id } = req.params; 
-
-    
-     if (!id) {
-         return res.status(400).json({ message: "Extraction record ID is required." });
-     }
-
-     const deletedRecord = await ExtractionRecord.findByIdAndDelete(id);
-
-     if (!deletedRecord) {
-         return res.status(404).json({ message: "Extraction record not found." });
-     }
-
-     res.status(200).json({
-         message: "Extraction record deleted successfully.",
-         data: deletedRecord
-     });
- } catch (error) {
-     console.error("Error in deleting extraction:", error);
-     res.status(500).json({ message: "Internal server error." });
- }
-};
-
 
 // controllers for order 
 exports.getOrderForAdmin = async (req, res) => {
@@ -153,8 +94,6 @@ exports.getOrderForAdmin = async (req, res) => {
    return res.status(500).json({ error: 'Internal Server Error' });
  }
 };
-
-
 exports.editOrderForAdmin = async (req, res) => {
  console.log("hitting the order ")
  try {
@@ -185,7 +124,6 @@ exports.editOrderForAdmin = async (req, res) => {
      res.status(500).json({ message: "Internal server error." });
  }
 };
-
 exports.deleteOrderForAdmin = async (req, res) => {
  try {
      const { id } = req.params; 
@@ -207,7 +145,6 @@ exports.deleteOrderForAdmin = async (req, res) => {
      res.status(500).json({ message: "Internal server error." });
  }
 };
-
 
 
 // controllers for products
@@ -266,22 +203,51 @@ exports.deleteProductForAdmin = async (req, res) => {
 
 
 // Segment target 
+// exports.getSegmentForAdmin = async (req, res) => {
+//  try {
+//      // Fetch all segment data
+//      const segments = await SegmentTarget.find();
+
+//      if (!segments || segments.length === 0) {
+//          return res.status(404).json({ message: "No segment data found." });
+//      }
+
+//      res.status(200).json({
+//          message: "Segment data retrieved successfully.",
+//          data: segments
+//      });
+//  } catch (error) {
+//      console.error("Error in retrieving segment data for admin:", error);
+//      res.status(500).json({ message: "Internal server error." });
+//  }
+// };
 exports.getSegmentForAdmin = async (req, res) => {
  try {
-     // Fetch all segment data
-     const segments = await SegmentTarget.find();
+   const page = parseInt(req.query.page) || 1; 
+   const limit = parseInt(req.query.limit) || 20; // Default to 10 items per page
 
-     if (!segments || segments.length === 0) {
-         return res.status(404).json({ message: "No segment data found." });
-     }
+   const skip = (page - 1) * limit;
 
-     res.status(200).json({
-         message: "Segment data retrieved successfully.",
-         data: segments
-     });
+   const [segments, total] = await Promise.all([
+     SegmentTarget.find().skip(skip).limit(limit),
+     SegmentTarget.countDocuments(),
+   ]);
+
+   const totalPages = Math.ceil(total / limit);
+
+   res.status(200).json({
+     success: true,
+     data: segments,
+     pagination: {
+       totalItems: total,
+       currentPage: page,
+       totalPages: totalPages,
+       pageSize: limit,
+     },
+   });
  } catch (error) {
-     console.error("Error in retrieving segment data for admin:", error);
-     res.status(500).json({ message: "Internal server error." });
+   console.error('Error fetching segments:', error);
+   res.status(500).json({ success: false, message: 'Server error' });
  }
 };
 exports.editSegmentForAdmin = async (req, res) => {
@@ -344,47 +310,68 @@ exports.deleteSegmentForAdmin = async (req, res) => {
 
 // sales data mtd wise 
 exports.getSalesDataForAdmin = async (req, res) => {
- const { page = 1, limit = 5 } = req.query; 
+ const { page = 1, limit = 20, search = "", startDate, endDate } = req.query;
 
  try {
-   const skip = (page - 1) * limit; 
-   const salesData = await SalesDataMTDW.find()
-     .skip(skip) 
-     .limit(Number(limit)); 
+   const skip = (Number(page) - 1) * Number(limit);
+
+   const query = {};
+
+   // Add universal search
+   if (search) {
+     query.$or = [
+       { productName: { $regex: search, $options: "i" } },
+       { customerName: { $regex: search, $options: "i" } },
+       { "TSE": { $regex: search, $options: "i" } },
+       { "ASM": { $regex: search, $options: "i" } }, 
+       { "SELLER NAME": { $regex: search, $options: "i" } }, 
+       { "BUYER": { $regex: search, $options: "i" } }, 
+       { "MODEL CODE": { $regex: search, $options: "i" } },  
+       { "MARKET": { $regex: search, $options: "i" } }, 
+     ];
+   }
+
+   // Add date range filter
+   if (startDate && endDate) {
+     const start = new Date(startDate);
+     const end = new Date(endDate);
+     end.setHours(23, 59, 59, 999); 
+     query.createdAt = { $gte: start, $lte: end };
+   }
+
+
+   const salesData = await SalesDataMTDW.find(query).skip(skip).limit(Number(limit));
 
    if (!salesData || salesData.length === 0) {
      return res.status(404).json({ message: "No sales data found." });
    }
 
-   // Get the total count for pagination
-   const totalCount = await SalesDataMTDW.countDocuments();
+   const totalCount = await SalesDataMTDW.countDocuments(query);
 
    res.status(200).json({
      message: "Sales data retrieved successfully.",
      data: salesData,
-     totalCount, // Send total count for pagination logic
+     totalCount,
    });
  } catch (error) {
    console.error("Error in retrieving sales data for admin:", error);
    res.status(500).json({ message: "Internal server error." });
  }
 };
-
 exports.editSalesDataForAdmin = async (req,res) =>{
  try{
 console.log("hiting api ")
  }catch(error){
   console.log("error while editing sales data" , error)
  }
-}
-
+};
 exports.deleteSalesData = async (req,res) =>{
  try{
 console.log("hiting api ")
  }catch(error){
   console.log("error while editing sales data" , error)
  }
-}
+};
 
 // users
 
@@ -406,3 +393,209 @@ exports.UserForAdmin = async (req, res) => {
      res.status(500).json({ message: "Internal server error." });
  }
 };
+exports.editUserForAdmin = async (req, res) =>{
+ try{
+console.log("hitting edit api")
+ }catch(error){
+  console.log("can not edit user" ,error)
+ }
+};
+exports.deleteUserForAdmin = async (req, res) =>{
+ try{
+console.log("hitting delete user api")
+ }catch(error){
+  console.log("error deleting user" ,error);
+ }
+};
+
+
+// Extraction Controller
+
+exports.getExtractionForAdmin = async (req, res) => {
+ try {
+     const { query, page = 1, limit = 20, startDate, endDate } = req.query; 
+     const skip = (page - 1) * limit;
+
+     const filters = {};
+     if (query && query.trim() !== "") {
+         const lowerCaseQuery = query.toLowerCase();
+         filters.$or = [
+             { dealerCode: { $regex: lowerCaseQuery, $options: 'i' } },
+             { uploadedBy: { $regex: lowerCaseQuery, $options: 'i' } },
+             { status: { $regex: lowerCaseQuery, $options: 'i' } },
+             { 'productId.Brand': { $regex: lowerCaseQuery, $options: 'i' } },
+             { 'productId.Model': { $regex: lowerCaseQuery, $options: 'i' } },
+             { 'productId.Category': { $regex: lowerCaseQuery, $options: 'i' } },
+         ];
+     }
+
+     if (startDate && endDate) {
+         filters.date = {
+             $gte: new Date(startDate),
+             $lte: new Date(endDate),
+         };
+     }
+
+     const extractionRecords = await ExtractionRecord.find(filters)
+         .skip(skip)
+         .limit(parseInt(limit))
+         .populate({
+             path: 'productId',
+             select: 'Brand Model Price Segment Category Status AdditionalInfo',
+         });
+
+     if (extractionRecords.length === 0) {
+         return res.status(200).json({ message: 'No Matching Records Found' });
+     }
+
+     const recordsWithDetails = await Promise.all(
+         extractionRecords.map(async (record) => {
+             const employee = await EmployeeCode.findOne({ Code: record.uploadedBy }).select('Name');
+             const dealer = await Dealer.findOne({ dealerCode: record.dealerCode }).select('shopName');
+
+             return {
+                 ID: record._id,
+                 'Dealer Code': record.dealerCode,
+                 'Shop Name': dealer ? dealer.shopName : 'N/A',
+                 Brand: record.productId?.Brand,
+                 Model: record.productId?.Model,
+                 Category: record.productId?.Category,
+                 Quantity: record.quantity,
+                 Price: record.productId?.Price,
+                 'Total Price': record.totalPrice,
+                 Segment: record.productId?.Segment,
+                 'Uploaded By': record.uploadedBy,
+                 'Employee Name': employee ? employee.Name : 'N/A',
+                 Status: record.productId?.Status,
+                 Date: record.date?.toISOString().split('T')[0] || 'N/A',
+                 'Admin Note': record.adminNote || 'N/A',
+             };
+         })
+     );
+     const columns = {
+         columns: [
+             'ID',
+             'Dealer Code',
+             'Shop Name',
+             'Brand',
+             'Model',
+             'Category',
+             'Quantity',
+             'Dealer Price',
+             'Total Price',
+             'Segment',
+             'Uploaded By',
+             'Employee Name',
+             'Status',
+             'Date',
+             'Admin Note',
+         ],
+     };
+
+     const totalRecords = await ExtractionRecord.countDocuments(filters);
+     const totalPages = Math.ceil(totalRecords / limit);
+     recordsWithDetails.unshift(columns);
+
+     return res.status(200).json({
+         records: recordsWithDetails,
+         totalRecords,
+         totalPages,
+         currentPage: parseInt(page),
+     });
+ } catch (error) {
+     console.error("Error fetching data for admin extraction:", error);
+     return res.status(500).json({ error: 'Internal Server Error' });
+ }
+};
+exports.editExtractionForAdmin = async (req, res) =>{
+ try{
+console.log("httiing extraction edit api");
+ }catch(error){
+  consle.log("error editing extraction");
+ }
+}
+exports.deleteExtractionForAdmin = async (req, res) =>{
+ try{
+console.log("hitting delete extraction")
+ }catch(error){
+  console.log("error deleting extraction")
+ }
+}
+// Dealer Controllers
+exports.getDealerForAdmin = async (req , res) =>{
+ try {
+  const page = parseInt(req.query.page) || 1; 
+  const limit = parseInt(req.query.limit) || 50;
+
+  const skip = (page - 1) * limit;
+
+  const dealers = await Dealer.find()
+    .skip(skip)
+    .limit(limit)
+    .exec();
+  const totalDealers = await Dealer.countDocuments();
+
+  const response = {
+    currentPage: page,
+    totalPages: Math.ceil(totalDealers / limit),
+    totalRecords: totalDealers,
+    data: dealers
+  };
+
+  // Send response
+  res.status(200).json(response);
+} catch (error) {
+  console.error("Error getting dealers:", error.message);
+  res.status(500).json({ message: "Error getting dealers", error: error.message });
+}
+}
+exports.editDealerForAdmin =async (req, res) =>{
+ try{
+  console.log("hitting editing dealer ")
+
+ }catch(error){
+  console.log("error editing data")
+ }
+}
+exports.deleteDealerForAdmin = async (req ,res) =>{
+ try{
+console.log("delete dealer ");
+ }catch{
+  console.log("error deleting dealer");
+ }
+}
+// Model Controller
+exports.getModelForAdmin = async (req , res) =>{
+ try {
+  console.log("Fetching model data");
+  const data = await ModelData.find({});
+  res.status(200).json({
+    success: true,
+    message: "Model data fetched successfully",
+    data: data,
+  });
+} catch (error) {
+  console.error("Error fetching model data:", error);
+
+  res.status(500).json({
+    success: false,
+    message: "Error fetching model data",
+    error: error.message,
+  });
+}
+}
+
+exports.editModelForAdmin = async (req ,res) =>{
+ try{
+  console.log("Hitting editing model")
+ }catch(error){
+  console.log("error editing model")
+ }
+}
+exports.deleteModelData = async (req ,res) =>{
+ try{
+console.log("hitting delete model api ")
+ }catch(error){
+  console.log("error deleting model")
+ }
+}

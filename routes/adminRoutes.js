@@ -1,12 +1,6 @@
 const express = require('express');
-const { editExtraction, deleteExtraction, editProductForAdmin, deleteProductForAdmin, getOrderForAdmin, editOrderForAdmin, deleteOrderForAdmin, getSalesDataForAdmin, getSegmentForAdmin, editSegmentForAdmin, deleteSegmentForAdmin, UserForAdmin, editSalesDataForAdmin, deleteSalesData } = require('../controllers/admin_Controllers');
+const { editExtraction, deleteExtraction, editProductForAdmin, deleteProductForAdmin, getOrderForAdmin, editOrderForAdmin, deleteOrderForAdmin, getSalesDataForAdmin, getSegmentForAdmin, editSegmentForAdmin, deleteSegmentForAdmin, UserForAdmin, editSalesDataForAdmin, deleteSalesData, getExtractionForAdmin, editUserForAdmin, deleteUserForAdmin, editExtractionForAdmin, deleteExtractionForAdmin, getDealerForAdmin, getModelForAdmin, editModelForAdmin, deleteModelData, editDealerForAdmin, deleteDealerForAdmin } = require('../controllers/admin_Controllers');
 const router = express.Router();
-
-// extraction routes
-
-router.put("/extraction/editExtraction/:id",editExtraction);
-router.delete("/extraction/deleteExtraction/:id" , deleteExtraction);
-
 
 // orders Routes
 router.get("/dealer/getOrders",getOrderForAdmin);
@@ -28,7 +22,7 @@ router.delete("/sales-data-mtdw/deleteSalesData/:id" , deleteSalesData);
 
 // segment Target Routes For admin
 
-router.get("/segment-target/getSegment" , getSegmentForAdmin);
+router.get("/segment-target/getSegement" ,getSegmentForAdmin);
 router.put("/segment-target/editSegment/:id" ,editSegmentForAdmin);
 router.delete("/segment-target/deleteSegment/:id",deleteSegmentForAdmin);
 
@@ -36,5 +30,20 @@ router.delete("/segment-target/deleteSegment/:id",deleteSegmentForAdmin);
 // get user api 
 
 router.get("/users/getUser" ,UserForAdmin);
+router.put("user/editUser/:id" ,editUserForAdmin);
+router.delete("user/deleteUser/:id" ,deleteUserForAdmin);
 
+// Extraction Api
+router.get("/extraction/getExtractions" ,getExtractionForAdmin); 
+router.put("/extraction/editExtractions" ,editExtractionForAdmin);
+router.put("/extraction/deleteExtraction/:id" ,deleteExtractionForAdmin);
+
+// Dealers Routes
+router.get("/dealer/getDealer" ,getDealerForAdmin)
+router.put("/dealer/editDealer" ,editDealerForAdmin);
+router.delete("/dealer/deleteDealer" , deleteDealerForAdmin)
+// Model Routes
+router.get("/model/getModel" ,getModelForAdmin)
+router.put("/model/editModel" ,editModelForAdmin);
+router.delete("model/deleteModel" ,deleteModelData)
 module.exports =  router;

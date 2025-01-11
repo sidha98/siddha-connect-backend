@@ -787,5 +787,45 @@ exports.fetchCreditLimitForMDD = async (req, res) => {
   }
 };
 
+exports.updateDealerGeoTagForEmployee = async (req, res) => {
+ try {
+   const { dealerCode, latitude, longitude } = req.query;
+
+   // Validate query parameters
+   if (!dealerCode || !latitude || !longitude) {
+     return res.status(400).json({
+       success: false,
+       message: "DealerCode, latitude, and longitude are required as query parameters.",
+     });
+   }
+
+   // Find and update the dealer
+   const updatedDealer = await Dealer.findOneAndUpdate(
+     { dealerCode },
+     { latitude, longitude },
+     { new: true } // Return the updated document
+   );
+
+   if (!updatedDealer) {
+     return res.status(404).json({
+       success: false,
+       message: "Dealer not found",
+     });
+   }
+
+   return res.status(200).json({
+     success: true,
+     message: "Dealer geotag updated successfully",
+     dealer: updatedDealer,
+   });
+ } catch (error) {
+   console.error("Error updating dealer geotag:", error);
+   return res.status(500).json({
+     success: false,
+     message: "Internal Server Error",
+   });
+ }
+};
+
 
 
