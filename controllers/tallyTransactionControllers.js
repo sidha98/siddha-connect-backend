@@ -82,29 +82,66 @@ exports.uploadTallyTransactions = async (req, res) => {
 
   exports.getTallyTransactionForDealer = async (req, res) => {
     try {
-        const { dealerCode } = req;
+        const { dealerCode } = req; // Assuming dealerCode is passed as a route parameter
         const { voucher_type } = req.query;
 
         if (!dealerCode) {
             return res.status(400).json({ error: "dealerCode is required" });
         }
 
-        // Assuming TallyTransaction is your MongoDB model
+        // Constructing filters for the query
         const filters = { dealerCode };
-
         if (voucher_type) {
             filters.VOUCHERTYPE = voucher_type;
         }
 
-        const transactions = await TallyTransaction.find(filters);
+        // Fetching transactions from MongoDB
+        const transactions = await TallyTransaction.find(filters).lean(); // Use `lean()` for better performance
 
         if (!transactions || transactions.length === 0) {
             return res.status(404).json({ message: "No transactions found for the given filters" });
         }
 
-        res.status(200).json(transactions);
+        // Adding unique `id` field for frontend compatibility
+        const formattedTransactions = transactions.map((transaction) => ({
+            ...transaction,
+            id: transaction._id, // Using `_id` as the `id` field
+        }));
+
+        res.status(200).json(formattedTransactions);
     } catch (error) {
-        console.error("Internal server error", error);
-        res.status(500).send("Internal server error");
+        console.error("Internal server error:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
 };
+
+
+
+// exports.getTallyTransactionForDealer = async (req, res) => {
+//   try {
+//       const { dealerCode } = req;
+//       const { voucher_type } = req.query;
+
+//       if (!dealerCode) {
+//           return res.status(400).json({ error: "dealerCode is required" });
+//       }
+
+//       // Assuming TallyTransaction is your MongoDB model
+//       const filters = { dealerCode };
+
+//       if (voucher_type) {
+//           filters.VOUCHERTYPE = voucher_type;
+//       }
+
+//       const transactions = await TallyTransaction.find(filters);
+
+//       if (!transactions || transactions.length === 0) {
+//           return res.status(404).json({ message: "No transactions found for the given filters" });
+//       }
+
+//       res.status(200).json(transactions);
+//   } catch (error) {
+//       console.error("Internal server error", error);
+//       res.status(500).send("Internal server error");
+//   }
+// };
