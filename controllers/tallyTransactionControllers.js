@@ -126,6 +126,7 @@ exports.uploadTallyTransactionsThroughMainMachine = async (req, res) => {
 
       // Example processing: Saving transactions to the database (replace with your logic)
       // await TransactionModel.insertMany(transactions);
+      console.log("Transactions: ", transactions);
 
       console.log("Transactions received:", transactions.length);
 
