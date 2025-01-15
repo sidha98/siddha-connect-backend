@@ -116,6 +116,27 @@ exports.uploadTallyTransactions = async (req, res) => {
 };
 
 
+exports.uploadTallyTransactionsThroughMainMachine = async (req, res) => {
+  try {
+      const transactions = req.body; // Transactions data sent from the local machine
+
+      if (!transactions || transactions.length === 0) {
+          return res.status(400).json({ error: "No transactions provided." });
+      }
+
+      // Example processing: Saving transactions to the database (replace with your logic)
+      // await TransactionModel.insertMany(transactions);
+
+      console.log("Transactions received:", transactions.length);
+
+      res.status(200).json({ message: "Transactions uploaded successfully.", count: transactions.length });
+  } catch (error) {
+      console.error("Internal server error:", error);
+      res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
 
 // exports.getTallyTransactionForDealer = async (req, res) => {
 //   try {
