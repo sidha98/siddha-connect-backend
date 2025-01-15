@@ -6,6 +6,7 @@ require("dotenv").config();
 const { JWT_SECRET } = process.env;
 const { token } = require("../middlewares/authMiddlewares");
 const SalesDataMTDW = require('../models/SalesDataMTDW');
+const TallyTransaction = require("../models/TallyTransaction");
 require("dotenv").config();
 const csvParser = require("csv-parser");
 const { Readable } = require("stream");
@@ -876,4 +877,70 @@ exports.getUpdatedGeoTagForEmployee = async (req, res) => {
    });
  }
 };
+
+exports.fetchLimitsForMDD = async (req, res) => {
+  try {
+      const { dealerCode } = req; // Accept dealerCode from request body
+
+      // Validate that dealerCode is provided
+      if (!dealerCode) {
+          return res.status(400).json({ success: false, message: "Dealer code is required." });
+      }
+
+      // Fetch dealer details
+      const dealer = await Dealer.findOne({ dealerCode }).lean();
+
+      // If dealer is not found
+      if (!dealer) {
+          return res.status(404).json({ success: false, message: "Dealer not found." });
+      }
+
+      // Fetch transactions for the dealer
+      const transactions = await TallyTransaction.find({ dealerCode }).lean();
+
+      // If no transactions found
+      if (!transactions || transactions.length === 0) {
+          return res.status(200).json({
+              success: true,
+              message: "No transactions found for the dealer.",
+              data: {
+                  creditLimit: dealer.credit_limit,
+                  utilizedLimit: 0,
+                  availableLimit: dealer.credit_limit,
+              }
+          });
+      }
+
+      // Calculate the utilized amount (considering signs)
+      let utilizedAmount = transactions.reduce(
+          (sum, txn) => sum + parseFloat(txn.AMOUNT || 0),
+          0
+      );
+
+      // Convert the utilized amount to a positive number
+      utilizedAmount = Math.abs(utilizedAmount);
+
+      // Calculate the available credit limit
+      const availableLimit = dealer.credit_limit - utilizedAmount;
+
+      // Return the response
+      return res.status(200).json({
+          success: true,
+          message: "Credit limit retrieved successfully.",
+          data: {
+              creditLimit: dealer.credit_limit,
+              utilizedLimit: utilizedAmount,
+              availableLimit: availableLimit < 0 ? 0 : availableLimit, // Avoid negative available limits
+              dealerCategory: dealer.dealerCategory,
+              shopName: dealer.shopName,
+          }
+      });
+  } catch (error) {
+      console.error("Error fetching credit limit:", error);
+      return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+
+
 
