@@ -20,7 +20,8 @@ const NODE_ENV = process.env.NODE_ENV || "development";
 
 // Parse URL-encoded form data
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" })); // Increase URL-encoded payload size limit
 app.use(cookieParser());
 
 // CORS configuration
