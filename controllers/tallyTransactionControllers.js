@@ -86,7 +86,7 @@ exports.uploadTallyTransactions = async (req, res) => {
         const { voucher_type } = req.query;
 
         if (!dealerCode) {
-            return res.status(400).json({ error: "dealerCode is required" });
+            return res.status(400).json({ error: "dealerCode is required." });
         }
 
         // Constructing filters for the query
