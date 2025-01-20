@@ -666,6 +666,7 @@ exports.autoUpdateEmployeeCodes = async (req, res) => {
   }
 };
 
+///////////////Todi-o////////////////////
 exports.registerAllUsersFromEmployeeCodeDB = async (req, res) => {
   try {
       // Fetch all EmployeeCodes

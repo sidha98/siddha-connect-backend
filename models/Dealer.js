@@ -125,6 +125,10 @@ const dealerSchema = new Schema({
   },
   credit_limit: {
     type: Number
+  },
+  geotag_picture: {
+    type: String,
+    default: null,
   }
 }, {
   timestamps: true,

@@ -1,8 +1,10 @@
 const express = require("express");
-const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee, fetchLimitsForMDD } = require("../controllers/dealerControllers");
+const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee, fetchLimitsForMDD, addGeotagPictureField } = require("../controllers/dealerControllers");
 const router = express.Router();
 const { userAuth, dealerAuth } = require("../middlewares/authMiddlewares");
 const { upload } = require("../services/fileUpload");
+const upload_img = require("../middlewares/upload");
+
 
 router.post("/add-dealer", addDealer);
 router.get("/get-dealer", dealerAuth, getDealer);
@@ -37,7 +39,10 @@ router.get("/fetch-limits-for-mdd", dealerAuth, fetchLimitsForMDD);
 
 
 // created by nameera 
-router.put("/updateDealerGeoTagForEmployee", updateDealerGeoTagForEmployee);
+router.put("/updateDealerGeoTagForEmployee", upload_img.single('geotag_picture'), updateDealerGeoTagForEmployee);
 router.get("/getUpdatedGeoTagForEmployee" , getUpdatedGeoTagForEmployee);
+
+//add fields
+router.put("/add-geo-pic-field", addGeotagPictureField);
 
 module.exports = router;

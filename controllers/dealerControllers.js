@@ -10,7 +10,7 @@ const TallyTransaction = require("../models/TallyTransaction");
 require("dotenv").config();
 const csvParser = require("csv-parser");
 const { Readable } = require("stream");
-
+const cloudinary = require('../config/cloudinary');
 
 exports.addDealer = async (req, res) => {
   try {
@@ -788,57 +788,125 @@ exports.fetchCreditLimitForMDD = async (req, res) => {
   }
 };
 
+// exports.updateDealerGeoTagForEmployee = async (req, res) => {
+//  try {
+//    const { dealerCode, latitude, longitude } = req.body;
+
+//    // Validate request body
+//    if (!dealerCode) {
+//      return res.status(400).json({
+//        success: false,
+//        message: "DealerCode is required",
+//      });
+//    }
+
+//    // Parse latitude and longitude to ensure they are stored as numbers
+//    const parsedLatitude = parseFloat(latitude);
+//    const parsedLongitude = parseFloat(longitude);
+
+//    if (isNaN(parsedLatitude) || isNaN(parsedLongitude)) {
+//      return res.status(400).json({
+//        success: false,
+//        message: "Latitude and longitude must be valid numbers.",
+//      });
+//    }
+
+//    // Find and update the dealer
+//    const updatedDealer = await Dealer.findOneAndUpdate(
+//      { dealerCode },
+//      { latitude: parsedLatitude, longitude: parsedLongitude },
+//      { new: true } // Return the updated document
+//    );
+
+//    if (!updatedDealer) {
+//      return res.status(404).json({
+//        success: false,
+//        message: "Dealer not found",
+//      });
+//    }
+
+//    return res.status(200).json({
+//      success: true,
+//      message: "Dealer geotag updated successfully",
+//      dealer: updatedDealer,
+//    });
+//  } catch (error) {
+//    console.error("Error updating dealer geotag:", error);
+//    return res.status(500).json({
+//      success: false,
+//      message: "Internal Server Error",
+//    });
+//  }
+// };
+
 exports.updateDealerGeoTagForEmployee = async (req, res) => {
- try {
-   const { dealerCode, latitude, longitude } = req.body;
+  try {
+    const { dealerCode, latitude, longitude } = req.body;
 
-   // Validate request body
-   if (!dealerCode) {
-     return res.status(400).json({
-       success: false,
-       message: "DealerCode is required",
-     });
-   }
+    if (!dealerCode) {
+      return res.status(400).json({
+        success: false,
+        message: "DealerCode is required",
+      });
+    }
 
-   // Parse latitude and longitude to ensure they are stored as numbers
-   const parsedLatitude = parseFloat(latitude);
-   const parsedLongitude = parseFloat(longitude);
+    const parsedLatitude = parseFloat(latitude);
+    const parsedLongitude = parseFloat(longitude);
 
-   if (isNaN(parsedLatitude) || isNaN(parsedLongitude)) {
-     return res.status(400).json({
-       success: false,
-       message: "Latitude and longitude must be valid numbers.",
-     });
-   }
+    if (isNaN(parsedLatitude) || isNaN(parsedLongitude)) {
+      return res.status(400).json({
+        success: false,
+        message: "Latitude and longitude must be valid numbers.",
+      });
+    }
 
-   // Find and update the dealer
-   const updatedDealer = await Dealer.findOneAndUpdate(
-     { dealerCode },
-     { latitude: parsedLatitude, longitude: parsedLongitude },
-     { new: true } // Return the updated document
-   );
+    // Check for file upload
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Geotagging picture is required.",
+      });
+    }
 
-   if (!updatedDealer) {
-     return res.status(404).json({
-       success: false,
-       message: "Dealer not found",
-     });
-   }
+    // Upload image to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'geotag_pictures',
+      public_id: `${dealerCode}_${Date.now()}`,
+      resource_type: 'image',
+    });
 
-   return res.status(200).json({
-     success: true,
-     message: "Dealer geotag updated successfully",
-     dealer: updatedDealer,
-   });
- } catch (error) {
-   console.error("Error updating dealer geotag:", error);
-   return res.status(500).json({
-     success: false,
-     message: "Internal Server Error",
-   });
- }
+    
+    // Update dealer with latitude, longitude, and geotag picture URL
+    const updatedDealer = await Dealer.findOneAndUpdate(
+      { dealerCode },
+      { 
+        latitude: parsedLatitude, 
+        longitude: parsedLongitude,
+        geotag_picture: result.secure_url,
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedDealer) {
+      return res.status(404).json({
+        success: false,
+        message: "Dealer not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Dealer geotag updated successfully",
+      dealer: updatedDealer,
+    });
+  } catch (error) {
+    console.error("Error updating dealer geotag:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
 };
-
 
 exports.getUpdatedGeoTagForEmployee = async (req, res) => {
  try {
@@ -938,6 +1006,18 @@ exports.fetchLimitsForMDD = async (req, res) => {
   } catch (error) {
       console.error("Error fetching credit limit:", error);
       return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+exports.addGeotagPictureField = async (req, res) => {
+  try {
+    const result = await Dealer.updateMany(
+      { geotag_picture: { $exists: false } },
+      { $set: { geotag_picture: null } }
+    );
+    console.log("Field added to existing dealers:", result);
+  } catch (error) {
+    console.error("Error updating dealers:", error);
   }
 };
 
