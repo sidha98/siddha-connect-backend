@@ -1,5 +1,5 @@
 const express = require("express");
-const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee, fetchLimitsForMDD, addGeotagPictureField } = require("../controllers/dealerControllers");
+const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee, fetchLimitsForMDD, addGeotagPictureField, registerDealersFromDealerListTseWise } = require("../controllers/dealerControllers");
 const router = express.Router();
 const { userAuth, dealerAuth } = require("../middlewares/authMiddlewares");
 const { upload } = require("../services/fileUpload");
@@ -44,5 +44,8 @@ router.get("/getUpdatedGeoTagForEmployee" , getUpdatedGeoTagForEmployee);
 
 //add fields
 router.put("/add-geo-pic-field", addGeotagPictureField);
+
+// register from dealerListTseWise
+router.post("/register-new-dealers-from-dealer-list-tse-wise", registerDealersFromDealerListTseWise)
 
 module.exports = router;
