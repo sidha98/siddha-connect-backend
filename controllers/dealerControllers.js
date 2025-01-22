@@ -1169,7 +1169,7 @@ exports.getMassagedDealersCSV = async (req, res) => {
         }),
         latitude,
         longitude,
-        geotag_picture: dealer.address?.geotag_picture || "N/A",
+        geotag_picture: dealer?.geotag_picture || "N/A",
       };
     });
 
