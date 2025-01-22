@@ -1151,8 +1151,8 @@ exports.getMassagedDealersCSV = async (req, res) => {
 
     // Prepare the data for CSV export
     const dealerData = dealers.map((dealer) => {
-      const latitude = dealer.address?.latitude ?? defaultLatitude;
-      const longitude = dealer.address?.longitude ?? defaultLongitude;
+      const latitude = dealer?.latitude ?? defaultLatitude;
+      const longitude = dealer?.longitude ?? defaultLongitude;
 
       return {
         dealerCode: dealer.dealerCode || "N/A",
