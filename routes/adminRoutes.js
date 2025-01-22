@@ -3,21 +3,21 @@ const { editExtraction, deleteExtraction, editProductForAdmin, deleteProductForA
 const router = express.Router();
 
 // orders Routes
-router.get("/dealer/getOrders",getOrderForAdmin);
-router.put("/dealer/editOrder/:id" ,editOrderForAdmin);
-router.delete("/dealer/deleteOrder/:id" ,deleteOrderForAdmin);
+router.get("/dealer/get-orders",getOrderForAdmin);
+router.put("/dealer/edit-order/:id" ,editOrderForAdmin);
+router.delete("/dealer/delete-order/:id" ,deleteOrderForAdmin);
 
 
 // Products Routes for Admin
 
-router.put("/product/editProduct/:id",editProductForAdmin);
-router.delete("/product/deleteProduct/:id" ,deleteProductForAdmin);
+router.put("/product/edit-product/:id",editProductForAdmin);
+router.delete("/product/delete-product/:id" ,deleteProductForAdmin);
 
 
 // sales data MTD Wise
-router.get("/sales-data-mtdw/getSalesData" , getSalesDataForAdmin);
-router.put("/sales-data-mtdw/editSalesData/:id" , editSalesDataForAdmin);
-router.delete("/sales-data-mtdw/deleteSalesData/:id" , deleteSalesData);
+router.get("/sales-data-mtdw/get-sales-data" , getSalesDataForAdmin);
+router.put("/sales-data-mtdw/edit-sales-data/:id" , editSalesDataForAdmin);
+router.delete("/sales-data-mtdw/delete-sales-data/:id" , deleteSalesData);
 
 
 // segment Target Routes For admin
@@ -39,11 +39,11 @@ router.put("/extraction/editExtractions" ,editExtractionForAdmin);
 router.put("/extraction/deleteExtraction/:id" ,deleteExtractionForAdmin);
 
 // Dealers Routes
-router.get("/dealer/getDealer" ,getDealerForAdmin)
+router.get("/dealer/getDealer" ,getDealerForAdmin);
 router.put("/dealer/editDealer" ,editDealerForAdmin);
-router.delete("/dealer/deleteDealer" , deleteDealerForAdmin)
+router.delete("/dealer/deleteDealer" , deleteDealerForAdmin);
 // Model Routes
-router.get("/model/getModel" ,getModelForAdmin)
+router.get("/model/getModel" ,getModelForAdmin);
 router.put("/model/editModel" ,editModelForAdmin);
 router.delete("model/deleteModel" ,deleteModelData)
 module.exports =  router;
