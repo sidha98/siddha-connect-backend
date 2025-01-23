@@ -49,6 +49,6 @@ router.put("/add-geo-pic-field", addGeotagPictureField);
 router.post("/register-new-dealers-from-dealer-list-tse-wise", registerDealersFromDealerListTseWise)
 
 
-router.get("/get-locations-csv-delaer", getMassagedDealersCSV);
+router.get("/get-locations-csv-delaer",userAuth, getMassagedDealersCSV);
 
 module.exports = router;
