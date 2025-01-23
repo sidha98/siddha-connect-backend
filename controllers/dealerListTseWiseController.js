@@ -293,6 +293,61 @@ exports.updateDealerListTSEWiseFromCSV = async (req, res) => {
   }
 };
 
+exports.updateTseInDealerListTseWise = async (req, res) => {
+  try {
+      if (!req.file) {
+          return res.status(400).send("No file uploaded");
+      }
+
+      let results = [];
+
+      if (req.file.originalname.endsWith(".csv")) {
+          const stream = new Readable();
+          stream.push(req.file.buffer);
+          stream.push(null);
+
+          stream
+              .pipe(csvParser())
+              .on("data", (data) => {
+                  results.push(data);
+              })
+              .on("end", async () => {
+                  try {
+                      let updateCount = 0;
+
+                      for (let row of results) {
+                          const dealerCode = row["Dealer Code"];
+                          const tseName = row["TSE Name"];
+
+                          if (!dealerCode || !tseName) continue; // Skip rows without Dealer Code or TSE Name
+
+                          // Update TSE field in DealerListTseWise
+                          const updatedRecord = await DealerListTseWise.findOneAndUpdate(
+                              { "Dealer Code": dealerCode }, // Filter by Dealer Code
+                              { $set: { TSE: tseName } },     // Update TSE field
+                              { new: true, upsert: false }    // Options: Return the updated document, no upsert
+                          );
+
+                          if (updatedRecord) {
+                              updateCount++;
+                          }
+                      }
+
+                      res.status(200).send(`${updateCount} records updated successfully.`);
+                  } catch (error) {
+                      console.error("Error updating records: ", error);
+                      res.status(500).send("Error updating records in the database");
+                  }
+              });
+      } else {
+          res.status(400).send("Unsupported file format");
+      }
+  } catch (error) {
+      console.error("Internal server error: ", error);
+      res.status(500).send("Internal server error");
+  }
+};
+
 
 
 
