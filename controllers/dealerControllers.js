@@ -1479,4 +1479,88 @@ exports.getMassagedDealersCSV = async (req, res) => {
 
 
 
+exports.getDealersGeotaggingInCSVFormat = async (req, res) => {
+  try {
+    // Fetch all dealers from the database
+    const dealers = await Dealer.find();
+
+    if (dealers.length === 0) {
+      return res.status(404).json({ message: "No dealers found." });
+    }
+
+    // Fetch dealer list from DealerListTseWise
+    const dealerListTseWise = await DealerListTseWise.find();
+    const tseMap = dealerListTseWise.reduce((map, item) => {
+      map[item["Dealer Code"]] = item.TSE || "N/A";
+      return map;
+    }, {});
+
+    // Define default latitude and longitude
+    const defaultLatitude = 26.937867;
+    const defaultLongitude = 75.7913932;
+
+    // Prepare the data for CSV export
+    const dealerData = dealers.map((dealer) => {
+      const latitude = dealer?.latitude ?? defaultLatitude;
+      const longitude = dealer?.longitude ?? defaultLongitude;
+      const tse = tseMap[dealer.dealerCode] || "N/A";
+
+      return {
+        dealerCode: dealer.dealerCode || "N/A",
+        shopName: dealer.shopName || "N/A",
+        shopArea: dealer.shopArea || "N/A",
+        shopAddress: dealer.shopAddress || "N/A",
+        updatedAt: new Date(dealer.updatedAt).toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+        latitude,
+        longitude,
+        geotag_picture: dealer?.geotag_picture || "N/A",
+        geotagging_status: dealer?.geotag_picture ? "DONE" : "PENDING",
+        TSE: tse,
+      };
+    });
+
+    // Define the CSV columns
+    const columns = [
+      "dealerCode",
+      "shopName",
+      "shopArea",
+      "shopAddress",
+      "updatedAt",
+      "latitude",
+      "longitude",
+      "geotag_picture",
+      "geotagging_status",
+      "TSE",
+    ];
+
+    // Convert data to CSV format
+    let csvContent = columns.join(",") + "\n"; // Add header row
+
+    dealerData.forEach((dealer) => {
+      const row = columns.map((col) => {
+        const value = dealer[col];
+        return typeof value === "string" ? value.replace(/,/g, "") : value; // Remove commas from string values
+      });
+      csvContent += row.join(",") + "\n";
+    });
+
+    // Set response headers for CSV file download
+    res.header("Content-Type", "text/csv");
+    res.header("Content-Disposition", "attachment; filename=dealers.csv");
+
+    // Send the CSV content
+    return res.status(200).send(csvContent);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 

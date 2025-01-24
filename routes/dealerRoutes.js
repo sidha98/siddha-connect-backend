@@ -1,5 +1,5 @@
 const express = require("express");
-const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee, fetchLimitsForMDD, addGeotagPictureField, registerDealersFromDealerListTseWise, getMassagedDealersCSV } = require("../controllers/dealerControllers");
+const { addDealer, getDealer, isDealerVerified, editDealer, verifyAllDealers, registerDealersFromSalesData, deleteDuplicateDealers, capitalizeDealerCodes, updateDealerCategoryFromCSV, addDefaultAddressToDealers, addCoordinateFieldsToDealers, addCreditLimitToDealers, updateCreditLimitFromCSV, fetchCreditLimitForMDD, updateDealerGeoTagForEmployee, getUpdatedGeoTagForEmployee, fetchLimitsForMDD, addGeotagPictureField, registerDealersFromDealerListTseWise, getMassagedDealersCSV, getDealersGeotaggingInCSVFormat } = require("../controllers/dealerControllers");
 const router = express.Router();
 const { userAuth, dealerAuth } = require("../middlewares/authMiddlewares");
 const { upload } = require("../services/fileUpload");
@@ -50,5 +50,6 @@ router.post("/register-new-dealers-from-dealer-list-tse-wise", registerDealersFr
 
 
 router.get("/get-locations-csv-delaer",userAuth, getMassagedDealersCSV);
+router.get("/get-dealers-geotagging-in-csv", getDealersGeotaggingInCSVFormat);
 
 module.exports = router;
