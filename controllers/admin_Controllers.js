@@ -608,8 +608,8 @@ exports.deleteModelData = async (req, res) => {
 // const CreditLimit = require("../models/creditLimit"); // Import the model
 
 exports.getCreditLimitsForAdmin = async (req, res) => {
-  // Get page and limit from query parameters, with defaults
-  const { page = 1, limit = 50 } = req.query;
+  // Get page, limit, and dealerCategory from query parameters, with defaults
+  const { page = 1, limit = 50, dealerCategory = 'MDD' } = req.query;
 
   // Calculate the number of documents to skip
   const skip = (page - 1) * limit;
@@ -617,17 +617,23 @@ exports.getCreditLimitsForAdmin = async (req, res) => {
   try {
     console.log("Fetching Paginated Credit Limits...");
 
-    // Fetch paginated documents from the CreditLimit collection
+    // Build filter object based on dealerCategory selection
+    let filter = {};
+    if (dealerCategory !== 'All') {
+      filter.dealerCategory = dealerCategory; // Only filter by dealerCategory if not 'All'
+    }
+
+    // Fetch paginated documents from the Dealer collection
     const creditLimits = await Dealer.find(
-      {}, // No filter; fetch all documents
-      { dealerCode: 1, shopName: 1, credit_limit: 1, _id: 1 } // Project specific fields
+      filter, // Apply filter based on dealerCategory
+      { dealerCode: 1, shopName: 1, credit_limit: 1, _id: 1, dealerCategory: 1 } // Project specific fields
     )
       .skip(skip) // Skip documents based on the page number
       .limit(parseInt(limit)) // Limit the number of documents per page
       .lean();
-
     // Count the total number of documents for pagination metadata
-    const totalRecords = await Dealer.countDocuments();
+
+    const totalRecords = await Dealer.countDocuments(filter); // Count based on filter
 
     // If no data is found
     if (!creditLimits || creditLimits.length === 0) {
@@ -659,6 +665,7 @@ exports.getCreditLimitsForAdmin = async (req, res) => {
     });
   }
 };
+
 
 // put particular dealer's credit limit
 exports.updateSingleCreditLimitForAdmin = async (req, res) => {
