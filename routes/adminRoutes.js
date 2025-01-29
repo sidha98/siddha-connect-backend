@@ -1,5 +1,6 @@
 const express = require('express');
-const { editExtraction, deleteExtraction, editProductForAdmin, deleteProductForAdmin, getOrderForAdmin, editOrderForAdmin, deleteOrderForAdmin, getSalesDataForAdmin, getSegmentForAdmin, editSegmentForAdmin, deleteSegmentForAdmin, UserForAdmin, editSalesDataForAdmin, deleteSalesData, getExtractionForAdmin, editUserForAdmin, deleteUserForAdmin, editExtractionForAdmin, deleteExtractionForAdmin, getDealerForAdmin, getModelForAdmin, editModelForAdmin, deleteModelData, editDealerForAdmin, deleteDealerForAdmin } = require('../controllers/admin_Controllers');
+const { editExtraction, deleteExtraction, editProductForAdmin, deleteProductForAdmin, getOrderForAdmin, editOrderForAdmin, deleteOrderForAdmin, getSalesDataForAdmin, getSegmentForAdmin, editSegmentForAdmin, deleteSegmentForAdmin, UserForAdmin, editSalesDataForAdmin, deleteSalesData, getExtractionForAdmin, editUserForAdmin, deleteUserForAdmin, editExtractionForAdmin, deleteExtractionForAdmin, getDealerForAdmin, getModelForAdmin, editModelForAdmin, deleteModelData, editDealerForAdmin, deleteDealerForAdmin, getCreditLimitsForAdmin, updateCreditLimitFromCsvForAdmin, updateSingleCreditLimitForAdmin } = require('../controllers/admin_Controllers');
+const { upload } = require('../services/fileUpload');
 const router = express.Router();
 
 // orders Routes
@@ -46,4 +47,9 @@ router.delete("/dealer/deleteDealer" , deleteDealerForAdmin);
 router.get("/model/getModel" ,getModelForAdmin);
 router.put("/model/editModel" ,editModelForAdmin);
 router.delete("model/deleteModel" ,deleteModelData)
+
+// Credit limit Routes
+router.get("/credit-limit/get-credit-limits" ,getCreditLimitsForAdmin);
+router.put("/credit-limit/update-single-credit-limit-for-admin" ,updateSingleCreditLimitForAdmin);
+router.put("/credit-limit/update-credit-limits-from-csv-for-admin", upload.single('file'), updateCreditLimitFromCsvForAdmin);
 module.exports =  router;
