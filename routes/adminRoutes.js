@@ -79,9 +79,19 @@ router.get("/dealer/getDealer", getDealerForAdmin);
 router.put("/dealer/editDealer", editDealerForAdmin);
 router.delete("/dealer/deleteDealer", deleteDealerForAdmin);
 // Model Routes
-router.get("/model/getModel", getModelForAdmin);
-router.put("/model/editModel", editModelForAdmin);
-router.delete("model/deleteModel", deleteModelData);
+router.get("/model/getModel" ,getModelForAdmin);
+router.put("/model/editModel" ,editModelForAdmin);
+router.delete("model/deleteModel" ,deleteModelData)
+
+//  Dealer TSE Wise Routes
+router.get("/tse/get-dealer-tse-wise", getDealerTseWiseForAdmin);
+router.put("/tse/put-dealer-tse-wise", putDealerTseWise);
+router.get("/tse/get-areas-for-dropdown", getAreasForDropdownForAdmin);
+
+//  Employeecodes Routes
+router.get("/employeecode/get-employee-code", getEmployeeCode);
+router.get("/employeename/get-employee-names-for-dropdown", getEmployeeNamesForDropdown);
+
 
 // Credit limit Routes
 router.get("/credit-limit/get-credit-limits", getCreditLimitsForAdmin);

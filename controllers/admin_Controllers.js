@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Dealer = require("../models/Dealer");
 const EmployeeCode = require("../models/EmployeeCode");
 const ExtractionRecord = require("../models/ExtractionRecord");
@@ -17,6 +18,7 @@ const fs = require("fs");
 const { application } = require("express");
 const { console } = require("inspector");
 const moment = require("moment");
+const DealerListTseWise = require("../models/DealerListTseWise");
 
 // controllers for order
 exports.getOrderForAdmin = async (req, res) => {
@@ -235,7 +237,7 @@ exports.deleteProductForAdmin = async (req, res) => {
 exports.getSegmentForAdmin = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20; // Default to 10 items per page
+    const limit = parseInt(req.query.limit) || 20; // Default items per page
 
     const skip = (page - 1) * limit;
 
@@ -373,6 +375,31 @@ exports.editSalesDataForAdmin = async (req, res) => {
     console.log("error while editing sales data", error);
   }
 };
+// ================= h D s =========================
+// exports.editSalesDataForAdmin = async (req, res) => {
+//   const { id } = req.params; // Assuming the ID is passed as a URL parameter.
+//   const updates = req.body; // Data to be updated is in the body of the request.
+
+//   try {
+//     console.log("Hitting API to edit sales data");
+
+//     // Find the sales data by ID and update it
+//     const updatedSalesData = await SalesDataMTDW.findByIdAndUpdate(id, updates, { new: true });
+
+//     if (!updatedSalesData) {
+//       return res.status(404).json({ message: "Sales data not found." });
+//     }
+
+//     res.status(200).json({
+//       message: "Sales data updated successfully.",
+//       data: updatedSalesData,
+//     });
+//   } catch (error) {
+//     console.error("Error while editing sales data:", error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+// ==========================================
 exports.deleteSalesData = async (req, res) => {
   try {
     console.log("hiting api ");
@@ -380,7 +407,30 @@ exports.deleteSalesData = async (req, res) => {
     console.log("error while editing sales data", error);
   }
 };
+// ================== h D s ========================
+// exports.deleteSalesData = async (req, res) => {
+//   const { id } = req.params; // Assuming the ID is passed as a URL parameter.
 
+//   try {
+//     console.log("Hitting API to delete sales data");
+
+//     // Find and delete the sales data by ID
+//     const deletedSalesData = await SalesDataMTDW.findByIdAndDelete(id);
+
+//     if (!deletedSalesData) {
+//       return res.status(404).json({ message: "Sales data not found." });
+//     }
+
+//     res.status(200).json({
+//       message: "Sales data deleted successfully.",
+//       data: deletedSalesData,
+//     });
+//   } catch (error) {
+//     console.error("Error while deleting sales data:", error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+// ==========================================
 // users
 
 exports.UserForAdmin = async (req, res) => {
@@ -465,7 +515,46 @@ exports.editUserForAdmin = async (req, res) => {
     res.status(500).json({ message: "Internal server error." });
   }
 };
+// ================== h D s ========================
+// exports.editUserForAdmin = async (req, res) => {
+//   try {
+//     console.log("Hitting edit user API");
 
+//     const { id } = req.params; // Extract the user ID from the URL
+//     const updates = req.body; // Extract the updates from the request body
+
+//     // Validate the presence of the user ID
+//     if (!id) {
+//       return res.status(400).json({ message: "User ID is required." });
+//     }
+
+//     // Validate the presence of updates
+//     if (!updates || Object.keys(updates).length === 0) {
+//       return res.status(400).json({ message: "No updates provided." });
+//     }
+
+//     // Find the user by ID and update with the provided data
+//     const updatedUser = await User.findByIdAndUpdate(id, updates, {
+//       new: true, // Return the updated document
+//       runValidators: true, // Ensure data validation is run
+//     });
+
+//     // Handle case where the user is not found
+//     if (!updatedUser) {
+//       return res.status(404).json({ message: "User not found." });
+//     }
+
+//     // Send a success response
+//     res.status(200).json({
+//       message: "User updated successfully.",
+//       data: updatedUser,
+//     });
+//   } catch (error) {
+//     console.error("Cannot edit user:", error);
+//     res.status(500).json({ message: "Internal server error." });
+//   }
+// };
+// ==========================================
 exports.deleteUserForAdmin = async (req, res) => {
   try {
     console.log("Hitting delete user API");
@@ -644,7 +733,34 @@ exports.deleteExtractionForAdmin = async (req, res) => {
   } catch (error) {
     console.log("error deleting extraction");
   }
-};
+}
+// =================== h D s ======================
+// exports.deleteExtractionForAdmin = async (req, res) => {
+//   try {
+//       const { id } = req.params; 
+ 
+     
+//       if (!id) {
+//           return res.status(400).json({ message: "Extraction record ID is required." });
+//       }
+ 
+//       const deletedRecord = await ExtractionRecord.findByIdAndDelete(id);
+ 
+//       if (!deletedRecord) {
+//           return res.status(404).json({ message: "Extraction record not found." });
+//       }
+ 
+//       res.status(200).json({
+//           message: "Extraction record deleted successfully.",
+//           data: deletedRecord
+//       });
+//   } catch (error) {
+//       console.error("Error in deleting extraction:", error);
+//       res.status(500).json({ message: "Internal server error." });
+//   }
+//  };
+// =========================================
+
 // Dealer Controllers
 exports.getDealerForAdmin = async (req, res) => {
   try {
@@ -719,6 +835,304 @@ exports.deleteModelData = async (req, res) => {
     console.log("hitting delete model api ");
   } catch (error) {
     console.log("error deleting model");
+  }
+}
+
+// ================ h D s ===========
+
+// Dealer TSE Wise
+// Backend Route to Fetch Paginated Dealer Data
+exports.getDealerTseWiseForAdmin = async (req, res) => {
+  const { page = 1, limit = 100, TSE, Area } = req.query;
+
+  try {
+      let matchQuery = {}; // Filter condition
+
+      if (TSE) matchQuery["TSE"] = TSE;
+if (Area) matchQuery["Area"] = Area;
+
+      let pipeline = [
+          {
+              $lookup: {
+                  from: "employeecodes",
+                  localField: "TSE",
+                  foreignField: "Name",
+                  as: "employeeData"
+              }
+          },
+          { $unwind: { path: "$employeeData", preserveNullAndEmptyArrays: true } },
+          {
+              $project: {
+                  "Dealer Code": 1,
+                  "DEALER NAME": 1,
+                  "Area": 1,
+                  "TSE": 1,
+                  "TSE Code": { $ifNull: ["$employeeData.Code", "N/A"] }
+              }
+          },
+          
+          { $match: matchQuery } // Apply filtering only when needed
+        ];
+        console.log("Match Query:", matchQuery);
+
+      let totalCount = await DealerListTseWise.countDocuments(matchQuery);
+
+      // Apply pagination only if no filters are applied
+      if (!TSE && !Area) {
+          pipeline.push({ $skip: (page - 1) * limit });
+          pipeline.push({ $limit: parseInt(limit) });
+      }
+
+      const dealers = await DealerListTseWise.aggregate(pipeline);
+
+      res.json({
+          data: dealers,
+          pagination: {
+              totalItems: totalCount,
+              totalPages: Math.ceil(totalCount / limit),
+              currentPage: parseInt(page)
+          }
+      });
+
+  } catch (error) {
+      console.error("Error fetching dealers:", error);
+      res.status(500).send("Server error");
+  }
+};
+
+
+exports.putDealerTseWise = async (req, res) => {
+  try {
+    console.log("Updating dealer data in dealerlisttsewisessssss...");
+
+    const { updates } = req.body;
+    if (!updates || updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No updates provided",
+      });
+    }
+
+    // Normalize and validate input
+    const updateList = Array.isArray(updates) ? updates : [updates];
+    const normalizedUpdates = updateList.map((update) => ({
+      dealerCode: update.dealerCode || update["Dealer Code"],
+      TSE: update.TSE,
+      dealerName: update["DEALER NAME"],
+      Area: update.Area,
+    }));
+
+    // Check for missing dealerCode
+    const invalidUpdates = normalizedUpdates.filter((update) => !update.dealerCode);
+    if (invalidUpdates.length > 0) {
+      throw new Error("Dealer Code is required for all updates.");
+    }
+
+    // Process updates
+    const updatePromises = normalizedUpdates.map(async (update) => {
+      const { dealerCode, TSE, dealerName, Area } = update;
+
+      const fieldsToUpdate = { TSE, "DEALER NAME": dealerName, Area };
+
+      // Remove undefined fields
+      Object.keys(fieldsToUpdate).forEach((key) => {
+        if (fieldsToUpdate[key] === undefined) delete fieldsToUpdate[key];
+      });
+
+      const updatedDealer = await DealerListTseWise.findOneAndUpdate(
+        { "Dealer Code": dealerCode }, // Match by dealer code
+        { $set: fieldsToUpdate }, // Apply updates
+        { new: true } // Return updated document
+      );
+
+      if (!updatedDealer) {
+        throw new Error(`Dealer with code ${dealerCode} not found.`);
+      }
+
+      return updatedDealer;
+    });
+
+    // Wait for all updates to complete
+    const updatedDealers = await Promise.all(updatePromises);
+
+    res.status(200).json({
+      success: true,
+      message: "Data updated successfully",
+      updatedDealers,
+    });
+  } catch (error) {
+    console.error("Error updating data in dealerlisttsewises:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update data",
+      error: error.message,
+    });
+  }
+};
+
+exports.deleteDealerTseWise = async (req, res) => {
+  try {
+    // Extract the dealer code or id from the request parameters
+    const { dealerCode } = req.params; // Assuming you're using a URL parameter
+
+    if (!dealerCode) {
+      return res.status(400).json({
+        success: false,
+        message: "Dealer Code is required",
+      });
+    }
+
+    console.log(`Deleting dealer with Dealer Code: ${dealerCode}`);
+
+    // Attempt to delete the dealer from the database
+    const deletedDealer = await DealerListTseWise.findOneAndDelete({ "Dealer Code": dealerCode });
+
+    // Check if the dealer was found and deleted
+    if (!deletedDealer) {
+      return res.status(404).json({
+        success: false,
+        message: `Dealer with Dealer Code ${dealerCode} not found.`,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Dealer with Dealer Code ${dealerCode} deleted successfully.`,
+    });
+  } catch (error) {
+    console.error("Error deleting dealer from dealerlisttsewises:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete dealer data",
+      error: error.message,
+    });
+  }
+};
+// fetch area for dropdown
+exports.getAreasForDropdownForAdmin = async (req, res) => {
+  try {
+    console.log("Fetching unique areas for dropdown...");
+
+    // Access the raw MongoDB collection without using a Mongoose model
+    const db = mongoose.connection.db;
+    const dealerListCollection = db.collection("dealerlisttsewises"); // Use the actual collection name
+
+    // Fetch only 'Area' field from all documents
+    const dealerList = await dealerListCollection.find({}, { projection: { Area: 1, _id: 0 } }).toArray();
+
+    // Extract unique areas
+    const uniqueAreas = [...new Set(dealerList.map((dealer) => dealer.Area).filter(area => area))]; // Remove null/undefined values
+
+    // Check if areas are found
+    if (uniqueAreas.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No areas found in the dealer list",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Areas fetched successfully",
+      data: uniqueAreas,
+    });
+  } catch (error) {
+    console.error("Error fetching areas:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch areas",
+      error: error.message,
+    });
+  }
+};
+
+// Fetch employee code by Name
+
+exports.getEmployeeCode = async (req, res) => {
+  try {
+    console.log("Fetching employee code data strictly for Position 'TSE'...");
+
+    const { name } = req.query; // Get Name from query parameter
+
+    // Ensure that Name is provided in the request
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "Name parameter is required",
+      });
+    }
+
+    // Fetch employee code strictly for Position "TSE"
+    const employee = await EmployeeCode.findOne(
+      { Name: name, Position: "TSE" }, // Filter by both Name and Position
+      { Name: 1, Position: 1, Code: 1, _id: 0 } // Include Name, Position, and Code, exclude _id
+    ).lean();
+
+    // If no matching employee is found
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: `${ name } with Position 'TSE' not found`,
+      });
+    }
+
+    // Return the employee data
+    res.status(200).json({
+      success: true,
+      message: "Employee data fetched successfully",
+      data: employee, // Only Name, Position, and Code
+    });
+  } catch (error) {
+    console.error("Error fetching employee code:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch employee data",
+      error: error.message,
+    });
+  }
+};
+
+exports.getEmployeeNamesForDropdown = async (req, res) => {
+  try {
+    console.log("Fetching employee names strictly for Position 'TSE' for dropdown...");
+
+    // Fetch employees with Position 'TSE'
+    const employees = await EmployeeCode.find(
+      { Position: "TSE" }, // Ensure only employees with Position 'TSE' are included
+      { Name: 1, Code: 1, _id: 0 } // Include Name and Code, exclude _id
+    ).lean();
+
+    // Remove duplicate entries based on Name + Position to ensure strict matching
+    const uniqueEmployees = employees.filter(
+      (value, index, self) => index === self.findIndex((emp) => emp.Name === value.Name && emp.Code === value.Code)
+    );
+
+    // Check if no TSE employees are found
+    if (!uniqueEmployees || uniqueEmployees.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No employees with Position 'TSE' found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Employee names fetched successfully",
+      data: uniqueEmployees, // Return strictly filtered list of TSE employees
+    });
+  } catch (error) {
+    console.error("Error fetching employee names:", error);
+
+    // Return a generic error message for server errors
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch employee names",
+      error: error.message,
+    });
   }
 };
 
