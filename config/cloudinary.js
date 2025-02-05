@@ -11,5 +11,4 @@ cloudinary.config({
   api_secret: api_secret,
 });
 
-console.log("Cloudinary Config:", cloudinary.config());
 module.exports = cloudinary; // Export if needed elsewhere
