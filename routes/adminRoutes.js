@@ -37,7 +37,12 @@ const {
   getTallyTransactionForAdmin,
   editTallyTransaction,
   getVoucherForAdmin,
-  deleteTallyTransactionByDate
+  deleteTallyTransactionByDate,
+  getDealerTseWiseForAdmin,
+  putDealerTseWise,
+  getAreasForDropdownForAdmin,
+  getEmployeeCode,
+  getEmployeeNamesForDropdown
 } = require("../controllers/admin_Controllers");
 const { upload } = require("../services/fileUpload");
 const router = express.Router();
