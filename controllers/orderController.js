@@ -26,8 +26,17 @@ exports.createOrder = async (req, res) => {
       return acc + product.Price * product.Quantity;
     }, 0);
 
-    // Create new order
+    // Fetch the last order and calculate the next order number
+    const lastOrder = await Order.findOne().sort({ OrderNumber: -1 }); // Sort by OrderNumber in descending order
+
+    // If there is no last order, start with 000001, otherwise increment the last order number
+    const nextOrderNumber = lastOrder 
+      ? String(parseInt(lastOrder.OrderNumber) + 1).padStart(6, '0') 
+      : '000001';
+
+    // Create new order with generated OrderNumber
     const order = new Order({
+      OrderNumber: nextOrderNumber, // Generated OrderNumber
       DealerCode: dealerCode,
       DealerName: shopName, // Use shopName from request as DealerName
       Products: products,
@@ -45,6 +54,8 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ error: error.message || 'Internal Server Error' });
   }
 };
+
+
   
 exports.getOrdersForDealers = async (req, res) => {
   try {
