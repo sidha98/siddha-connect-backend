@@ -42,7 +42,8 @@ const {
   putDealerTseWise,
   getAreasForDropdownForAdmin,
   getEmployeeCode,
-  getEmployeeNamesForDropdown
+  getEmployeeNamesForDropdown,
+  LoginAdmin
 } = require("../controllers/admin_Controllers");
 const { upload } = require("../services/fileUpload");
 const router = express.Router();
@@ -118,4 +119,7 @@ router.delete("/tally-transaction/delete-tally-transaction/:date", deleteTallyTr
 //voucher
 router.get("/voucher/get-voucher-type", getVoucherForAdmin);
 
+
+// login
+router.post("/login-admin",LoginAdmin);
 module.exports = router;

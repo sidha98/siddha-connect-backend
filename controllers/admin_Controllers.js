@@ -1728,3 +1728,28 @@ exports.getVoucherForAdmin = async (req, res) => {
     });
   }
 };
+
+
+
+exports.LoginAdmin = async (req, res) => {
+ try {
+   // Hardcoded email and password
+   const hardcodedEmail = "admin@gmail.com";
+   const hardcodedPassword = "admin123";
+
+   // Get the email and password from the request body
+   const { email, password } = req.body;
+
+   // Check if the email and password match
+   if (email === hardcodedEmail && password === hardcodedPassword) {
+     // Send success response
+     return res.status(200).json({ message: "Login successful" });
+   } else {
+     // If the credentials don't match, send an error response
+     return res.status(401).json({ message: "Invalid email or password" });
+   }
+ } catch (error) {
+   console.log("Error in login: ", error);
+   return res.status(500).json({ message: "Internal server error" });
+ }
+};
