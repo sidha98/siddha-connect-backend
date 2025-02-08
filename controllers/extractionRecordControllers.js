@@ -12,6 +12,7 @@ const { BACKEND_URL } = process.env;
 
 exports.addExtractionRecord = async (req, res) => {
     try {
+        console.log("Reaching extrac");
         const { products, dealerCode, remarks } = req.body;
 
         // Extract code (employee code) directly from req
