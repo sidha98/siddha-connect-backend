@@ -88,6 +88,7 @@ exports.addExtractionRecord = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
+        console.log("Error: ", error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
