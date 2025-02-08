@@ -62,6 +62,7 @@ exports.addExtractionRecord = async (req, res) => {
                 date: new Date(), // Set the date as the current date
                 quantity,
                 uploadedBy: code, // Set the employee code from req
+                updated_uploader: code,
                 totalPrice,
                 remarks
             });
@@ -75,6 +76,7 @@ exports.addExtractionRecord = async (req, res) => {
                 date: savedRecord.date,
                 quantity: savedRecord.quantity,
                 uploadedBy: savedRecord.uploadedBy,
+                updated_uploader: savedRecord.updated_uploader,
                 totalPrice: savedRecord.totalPrice,
                 remarks: savedRecord.remarks
             });
