@@ -20,15 +20,31 @@ jobs:
           echo "${{ secrets.EC2_PEM_KEY }}" > ec2-key.pem
           chmod 600 ec2-key.pem
 
-      # Step 3: Connect to EC2 instance and deploy
+      # Step 3: Deploy to EC2
       - name: Deploy to EC2
         run: |
           ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@3.108.84.213 << 'EOF'
             cd /home/ec2-user/siddha-connect-backend
-            sudo su
+            
+            # Ensure correct Node.js version is used
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 18 || nvm use default
+            
+            # Pull latest changes from Git
+            git fetch --all
+            git reset --hard origin/main
             git pull origin main
-            npm install
-            pm2 restart siddha-connect-v2 || pm2 start server.js --name siddha-connect-v2
+            
+            # Install dependencies
+            npm install --production
+            
+            # Restart PM2 with updated environment variables
+            pm2 restart siddha-connect-v2 --update-env || pm2 start server.js --name siddha-connect-v2
+            
+            # Save PM2 process for reboot persistence
             pm2 save
-            pm2 startup systemd
+            
+            # Ensure PM2 auto-starts on reboot
+            pm2 startup systemd --user ec2-user --hp /home/ec2-user
           EOF
