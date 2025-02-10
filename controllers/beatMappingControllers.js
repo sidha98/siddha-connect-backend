@@ -39,7 +39,7 @@ exports.addBeat = async (req, res) => {
 exports.getBeat = async (req, res) => {
  try {
      const beats = await BeatMapping.find();
-     res.status(200).json({ success: true, data: beats });
+     res.status(200).json({ success: true, data: beats, change: 'v1' });
  } catch (error) {
      console.error("Error getting mapping", error);
      res.status(500).json({ success: false, message: "Server error" });
