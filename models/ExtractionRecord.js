@@ -25,7 +25,7 @@ const extractionRecordSchema = new mongoose.Schema({
     },
     updated_uploader: {
         type: String,
-        required: true
+        required: false
     },
     totalPrice: {
         type: Number,
