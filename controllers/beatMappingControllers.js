@@ -2,8 +2,8 @@ const BeatMapping = require("../models/BeatMapping");
 
 exports.addBeat = async (req, res) => {
     try {
-        const { user_id } = req;
-        const { latitude, longitude, accuracy, speed, altitude, address, deviceId, batteryLevel } = req.body;
+        // const { user_id } = req;
+        const { user_id, latitude, longitude, accuracy, speed, altitude, address, deviceId, batteryLevel } = req.body;
 
         // Validate input fields
         if (!user_id || !latitude || !longitude) {
