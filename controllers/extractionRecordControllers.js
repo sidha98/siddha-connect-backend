@@ -17,6 +17,7 @@ exports.addExtractionRecord = async (req, res) => {
 
         // Extract code (employee code) directly from req
         const { code } = req;
+        console.log("Code: ", code);
 
         // Validate required fields
         if (!products || !dealerCode || !code) {
