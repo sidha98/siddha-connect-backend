@@ -366,7 +366,7 @@ exports.login = async (req, res) => {
 
     // Send response with role included
     res.status(200).json({
-      message: "User logged in successfully!!!!!!!",
+      message: "User logged in successfully",
       token,
       role, // Include the role in the response to differentiate dashboards
       verified: user.verified || false, // Default to true if not present in dealer
