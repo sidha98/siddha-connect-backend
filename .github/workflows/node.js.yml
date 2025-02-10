@@ -30,4 +30,5 @@ jobs:
             npm install
             pm2 restart siddha-connect-v2 || pm2 start server.js --name siddha-connect-v2
             pm2 save
+            pm2 startup systemd
           EOF
