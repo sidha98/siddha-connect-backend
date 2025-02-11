@@ -1,5 +1,11 @@
 const WeeklyBeatMappingSchedule = require("../models/WeeklyBeatMappingSchedule");
 
+const csvParser = require("csv-parser");
+const { Readable } = require("stream");
+const EmployeeCode = require("../models/EmployeeCode");
+const Dealer = require("../models/Dealer");
+const { getCurrentWeekDates } = require("../helpers/dateHelpers");
+
 exports.addWeeklyBeatMappingSchedule = async (req, res) => {
     try {
         const { startDate, endDate, code, schedule } = req.body;
@@ -167,5 +173,114 @@ exports.updateWeeklyBeatMappingStatusById = async (req, res) => {
     } catch (error) {
         console.error("Error updating dealer status:", error);
         return res.status(500).json({ error: "Internal server error!!!" });
+    }
+};
+
+exports.addWeeklyBeatMappingFromCSV = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        let results = [];
+
+        // Parse CSV from buffer
+        const stream = new Readable();
+        stream.push(req.file.buffer);
+        stream.push(null);
+
+        stream.pipe(csvParser())
+            .on("data", (data) => {
+                results.push(data);
+            })
+            .on("end", async () => {
+                try {
+                    let schedules = [];
+
+                    for (let row of results) {
+                        const tseName = row["TSE Name"];
+                        const dealerCodes = row["Dealer Codes(All)"] ? row["Dealer Codes(All)"].split(" ") : [];
+
+                        if (!tseName) continue;
+
+                        // Find the TSE code from EmployeeCode collection
+                        const tseEmployee = await EmployeeCode.findOne({ Name: tseName, Position: "TSE" });
+                        if (!tseEmployee) {
+                            console.warn(`TSE ${tseName} not found in EmployeeCode database.`);
+                            continue;
+                        }
+
+                        const userCode = tseEmployee.Code;
+
+                        // Fetch dealer details from Dealer collection
+                        const dealerRecords = await Dealer.find({ dealerCode: { $in: dealerCodes } });
+
+                        let schedule = {
+                            Mon: [],
+                            Tue: [],
+                            Wed: [],
+                            Thu: [],
+                            Fri: [],
+                            Sat: [],
+                            Sun: []
+                        };
+
+                        // Populate schedule for each day
+                        for (const day of ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]) {
+                            if (row[day]) {
+                                const dayDealerCodes = row[day].split(" ").filter(code => code);
+                                for (const dealerCode of dayDealerCodes) {
+                                    const dealer = dealerRecords.find(d => d.dealerCode === dealerCode);
+                                    if (dealer) {
+                                        schedule[day.substring(0, 3)].push({
+                                            dealerCode: dealerCode,
+                                            dealerName: dealer.shopName,
+                                            lat: dealer?.latitude || 0.0,
+                                            long: dealer?.longitude || 0.0,
+                                            status: "pending"
+                                        });
+                                    }
+                                }
+                            }
+                        }
+
+                        // Get start and end date from request or select current week
+                        let { startDate, endDate } = req.body;
+                        if (!startDate || !endDate) {
+                            ({ startDate, endDate } = getCurrentWeekDates());
+                        }
+
+                        // Calculate total dealers in the schedule
+                        let total = Object.values(schedule).reduce((sum, dealers) => sum + dealers.length, 0);
+
+                        // Prepare new schedule entry
+                        schedules.push({
+                            startDate: new Date(startDate),
+                            endDate: new Date(endDate),
+                            userCode,
+                            schedule,
+                            total,
+                            done: 0,
+                            pending: total
+                        });
+                    }
+
+                    // Insert all schedules into the database
+                    await WeeklyBeatMappingSchedule.insertMany(schedules);
+
+                    return res.status(201).json({
+                        message: "Weekly Beat Mapping Schedules added successfully.",
+                        totalSchedules: schedules.length
+                    });
+
+                } catch (error) {
+                    console.error("Error processing CSV:", error);
+                    return res.status(500).json({ error: "Internal server error while processing CSV" });
+                }
+            });
+
+    } catch (error) {
+        console.error("Error handling CSV upload:", error);
+        return res.status(500).json({ error: "Internal server error" });
     }
 };
