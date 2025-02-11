@@ -102,3 +102,70 @@ exports.getWeeklyBeatMappingScheduleByUserCodeAndDate = async (req, res) => {
         return res.status(500).json({ error: "Internal server error!!!!" });
     }
 };
+
+
+exports.updateWeeklyBeatMappingStatusById = async (req, res) => {
+    try {
+        const { scheduleId, dealerId } = req.params; // Schedule document ID & Dealer ID inside schedule
+        const { status } = req.body; // New status
+
+        // Validate input
+        if (!scheduleId || !dealerId || !status) {
+            return res.status(400).json({ error: "Schedule ID, dealer ID, and status are required." });
+        }
+
+        // Validate status value
+        if (!["done", "pending"].includes(status)) {
+            return res.status(400).json({ error: "Invalid status. Allowed values: 'done', 'pending'." });
+        }
+
+        // Find the schedule entry by ID
+        const schedule = await WeeklyBeatMappingSchedule.findById(scheduleId);
+        if (!schedule) {
+            return res.status(404).json({ error: "Schedule not found." });
+        }
+
+        let dealerUpdated = false;
+
+        // Loop through all days to find and update the dealer entry by _id
+        Object.keys(schedule.schedule).forEach(day => {
+            schedule.schedule[day].forEach(dealer => {
+                if (dealer._id.toString() === dealerId) {
+                    dealer.status = status;
+                    dealerUpdated = true;
+                }
+            });
+        });
+
+        if (!dealerUpdated) {
+            return res.status(404).json({ error: "Dealer entry not found in the schedule." });
+        }
+
+        // Recalculate total, done, and pending counts
+        let total = 0, done = 0, pending = 0;
+        Object.values(schedule.schedule).forEach(daySchedule => {
+            total += daySchedule.length;
+            daySchedule.forEach(dealer => {
+                if (dealer.status === 'done') done++;
+                else if (dealer.status === 'pending') pending++;
+            });
+        });
+
+        // Update the counts
+        schedule.total = total;
+        schedule.done = done;
+        schedule.pending = pending;
+
+        // Save the updated schedule
+        await schedule.save();
+
+        return res.status(200).json({
+            message: "Dealer status updated successfully.",
+            data: schedule
+        });
+
+    } catch (error) {
+        console.error("Error updating dealer status:", error);
+        return res.status(500).json({ error: "Internal server error!!!" });
+    }
+};
