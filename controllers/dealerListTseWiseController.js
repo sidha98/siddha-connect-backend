@@ -4,6 +4,10 @@ const { Readable } = require("stream");
 const { v4: uuidv4 } = require("uuid");
 const SalesDataMTDW = require("../models/SalesDataMTDW");
 
+const { Parser } = require("json2csv"); // Library to convert JSON to CSV
+const fs = require("fs");
+const path = require("path");
+
 exports.uploadDealerListTseWise = async (req, res) => {
     try {
       if (!req.file) {
@@ -348,6 +352,64 @@ exports.updateTseInDealerListTseWise = async (req, res) => {
   }
 };
 
+
+exports.getAllDealersForATseFromOBM = async (req, res) => {
+    try {
+        // Fetch all dealers from the database
+        const dealers = await DealerListTseWise.find({}, { TSE: 1, "Dealer Code": 1 });
+
+        if (!dealers || dealers.length === 0) {
+            return res.status(404).json({ error: "No dealers found." });
+        }
+
+        // Group dealer codes by TSE
+        const tseDealersMap = {};
+        dealers.forEach(({ TSE, "Dealer Code": dealerCode }) => {
+            if (TSE && dealerCode) {
+                if (!tseDealersMap[TSE]) {
+                    tseDealersMap[TSE] = [];
+                }
+                tseDealersMap[TSE].push(dealerCode);
+            }
+        });
+
+        // Convert grouped data to an array of objects
+        const recordsWithDetails = Object.entries(tseDealersMap).map(([tse, dealerCodes]) => ({
+            "TSE Name": tse,
+            "Dealer Codes": `"${dealerCodes.join(", ")}"` // Wrap in quotes to prevent CSV formatting issues
+        }));
+
+        // Define CSV columns
+        const columns = ["TSE Name", "Dealer Codes"];
+
+        // Function to sanitize data (remove commas within values)
+        const sanitizeValue = (value) => {
+            if (typeof value === 'string') {
+                return value.replace(/,/g, ''); // Remove commas to prevent CSV format issues
+            }
+            return value.toString().replace(/,/g, ''); // Convert numbers to string and sanitize
+        };
+
+        // Build CSV content as a string
+        let csvContent = columns.join(",") + "\n"; // Add header row
+
+        recordsWithDetails.forEach(record => {
+            const sanitizedRecord = columns.map(column => sanitizeValue(record[column]));
+            csvContent += sanitizedRecord.join(",") + "\n"; // Add each sanitized row
+        });
+
+        // Set response headers for file download
+        res.header("Content-Type", "text/csv");
+        res.header("Content-Disposition", 'attachment; filename="tse_dealers.csv"');
+
+        // Send the CSV content as response
+        return res.status(200).send(csvContent);
+
+    } catch (error) {
+        console.error("Error fetching TSE dealers:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
 
 
