@@ -93,7 +93,7 @@ exports.getWeeklyBeatMappingScheduleByUserCodeAndDate = async (req, res) => {
         }
 
         return res.status(200).json({
-            message: "Weekly Beat Mapping Schedules retrieved successfully.",
+            message: "Weekly Beat Mapping Schedules retrieved successfully!",
             data: schedules
         });
 
