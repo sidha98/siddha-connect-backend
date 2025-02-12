@@ -1,5 +1,5 @@
 const express = require("express");
-const { addWeeklyBeatMappingSchedule, getWeeklyBeatMappingScheduleByUserCodeAndDate, updateWeeklyBeatMappingStatusById, addWeeklyBeatMappingFromCSV } = require("../controllers/weeklyBeatMappingScheduleControllers");
+const { addWeeklyBeatMappingSchedule, getWeeklyBeatMappingScheduleByUserCodeAndDate, updateWeeklyBeatMappingStatusById, addWeeklyBeatMappingFromCSV, updateDealerStatusWithProximity } = require("../controllers/weeklyBeatMappingScheduleControllers");
 const { upload } = require("../services/fileUpload");
 const router = express.Router();
 
@@ -11,6 +11,7 @@ router.put("/weekly-schedule/:scheduleId/dealer/:dealerId/status", updateWeeklyB
 
 router.post("/weekly-schedule/upload", upload.single("file"), addWeeklyBeatMappingFromCSV);
 
+router.put("/weekly-schedule/:scheduleId/dealer/:dealerId/status-proximity", updateDealerStatusWithProximity);
 
 
 

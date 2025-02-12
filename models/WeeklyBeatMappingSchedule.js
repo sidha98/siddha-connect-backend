@@ -5,7 +5,8 @@ const DealerScheduleSchema = new mongoose.Schema({
     dealerName: { type: String, required: true },
     lat: { type: mongoose.Schema.Types.Decimal128, required: true },
     long: { type: mongoose.Schema.Types.Decimal128, required: true },
-    status: { type: String, enum: ['done', 'pending'], required: true }
+    status: { type: String, enum: ['done', 'pending'], required: true },
+    distance: { type: String, default: null }  // ✅ NEW FIELD to store distance from employee
 });
 
 const WeeklyBeatMappingScheduleSchema = new mongoose.Schema({

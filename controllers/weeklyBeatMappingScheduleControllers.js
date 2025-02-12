@@ -1,10 +1,11 @@
 const WeeklyBeatMappingSchedule = require("../models/WeeklyBeatMappingSchedule");
-
+const mongoose = require("mongoose");
 const csvParser = require("csv-parser");
 const { Readable } = require("stream");
 const EmployeeCode = require("../models/EmployeeCode");
 const Dealer = require("../models/Dealer");
 const { getCurrentWeekDates } = require("../helpers/dateHelpers");
+const { calculateDistance } = require("../helpers/locationHelpers");
 
 exports.addWeeklyBeatMappingSchedule = async (req, res) => {
     try {
@@ -284,3 +285,151 @@ exports.addWeeklyBeatMappingFromCSV = async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
     }
 };
+
+
+// exports.updateDealerStatusWithProximity = async (req, res) => {
+//     try {
+//         const { scheduleId, dealerId } = req.params;
+//         const { employeeLat, employeeLong, status } = req.body;
+//         const allowedRadius = 100; // Set proximity range (in meters)
+
+//         if (!scheduleId || !dealerId || !employeeLat || !employeeLong || !status) {
+//             return res.status(400).json({ error: "Missing required parameters." });
+//         }
+
+//         const schedule = await WeeklyBeatMappingSchedule.findById(scheduleId);
+//         if (!schedule) return res.status(404).json({ error: "Schedule not found." });
+
+//         let dealerEntry = null;
+//         let dayFound = null;
+
+//         // Find the dealer entry inside the schedule
+//         Object.keys(schedule.schedule).forEach(day => {
+//             schedule.schedule[day].forEach(dealer => {
+//                 if (dealer._id.toString() === dealerId) {
+//                     dealerEntry = dealer;
+//                     dayFound = day;
+//                 }
+//             });
+//         });
+
+//         if (!dealerEntry) return res.status(404).json({ error: "Dealer entry not found in schedule." });
+
+//         // Get dealer's latitude and longitude
+//         const dealerLat = parseFloat(dealerEntry.lat);
+//         const dealerLong = parseFloat(dealerEntry.long);
+
+//         // Calculate distance
+//         const distance = calculateDistance(employeeLat, employeeLong, dealerLat, dealerLong);
+
+//         if (distance > allowedRadius) {
+//             return res.status(403).json({
+//                 error: "You are too far from the dealer's location.",
+//                 distanceFromDealer: distance.toFixed(2) + " meters"
+//             });
+//         }
+
+//         // Update the dealer status in the schedule
+//         dealerEntry.status = status;
+
+//         // Recalculate done/pending counts
+//         let done = 0, pending = 0;
+//         Object.values(schedule.schedule).forEach(daySchedule => {
+//             daySchedule.forEach(dealer => {
+//                 if (dealer.status === 'done') done++;
+//                 else pending++;
+//             });
+//         });
+
+//         schedule.done = done;
+//         schedule.pending = pending;
+
+//         await schedule.save();
+
+//         return res.status(200).json({
+//             message: "Dealer status updated successfully.",
+//             data: schedule
+//         });
+
+//     } catch (error) {
+//         console.error("Error updating dealer status:", error);
+//         return res.status(500).json({ error: "Internal server error." });
+//     }
+// };
+
+exports.updateDealerStatusWithProximity = async (req, res) => {
+    try {
+        const { scheduleId, dealerId } = req.params;
+        const { employeeLat, employeeLong, status } = req.body;
+        const allowedRadius = 100; // Allowed proximity range (in meters)
+
+        if (!scheduleId || !dealerId || !employeeLat || !employeeLong || !status) {
+            return res.status(400).json({ error: "Missing required parameters." });
+        }
+
+        // Find the schedule entry
+        const schedule = await WeeklyBeatMappingSchedule.findById(scheduleId);
+        if (!schedule) return res.status(404).json({ error: "Schedule not found." });
+
+        // Find the dealer entry inside the schedule
+        let dealerEntry = null;
+        let dayFound = null;
+
+        Object.keys(schedule.schedule).forEach(day => {
+            schedule.schedule[day].forEach(dealer => {
+                if (dealer._id.toString() === dealerId) {
+                    dealerEntry = dealer;
+                    dayFound = day;
+                }
+            });
+        });
+
+        if (!dealerEntry) return res.status(404).json({ error: "Dealer entry not found in schedule." });
+
+        // Get dealer's latitude and longitude
+        const dealerLat = parseFloat(dealerEntry.lat);
+        const dealerLong = parseFloat(dealerEntry.long);
+
+        // Calculate distance
+        const distance = calculateDistance(employeeLat, employeeLong, dealerLat, dealerLong);
+
+        if (distance > allowedRadius) {
+            return res.status(403).json({
+                error: "You are too far from the dealer's location.",
+                distanceFromDealer: distance.toFixed(2) + " meters"
+            });
+        }
+
+        // Use findOneAndUpdate to directly update the status and distance in the database
+        const updatePath = `schedule.${dayFound}.$[elem]`;
+
+        const updatedSchedule = await WeeklyBeatMappingSchedule.findOneAndUpdate(
+            { _id: scheduleId },
+            {
+                $set: {
+                    [`${updatePath}.status`]: status,
+                    [`${updatePath}.distance`]: `${distance.toFixed(2)} meters`
+                }
+            },
+            {
+                arrayFilters: [{ "elem._id": new mongoose.Types.ObjectId(dealerId) }],
+                new: true
+            }
+        );
+
+        if (!updatedSchedule) {
+            return res.status(500).json({ error: "Failed to update dealer status." });
+        }
+
+        return res.status(200).json({
+            message: "Dealer status updated successfully.",
+            updatedDistance: `${distance.toFixed(2)} meters`,
+            data: updatedSchedule
+        });
+
+    } catch (error) {
+        console.error("Error updating dealer status:", error);
+        return res.status(500).json({ error: "Internal server error." });
+    }
+};
+
