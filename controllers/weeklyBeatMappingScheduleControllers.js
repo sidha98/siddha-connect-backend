@@ -424,7 +424,7 @@ exports.updateDealerStatusWithProximity = async (req, res) => {
     try {
         const { scheduleId, dealerId } = req.params;
         const { employeeLat, employeeLong, status } = req.body;
-        const allowedRadius = 100; // Allowed proximity range (in meters)
+        const allowedRadius = 10000; // Allowed proximity range (in meters)
         console.log("employeeLat, employeeLong: ", scheduleId, dealerId, employeeLat, employeeLong, status)
 
         if (!scheduleId || !dealerId || !employeeLat || !employeeLong || !status) {
