@@ -425,6 +425,7 @@ exports.updateDealerStatusWithProximity = async (req, res) => {
         const { scheduleId, dealerId } = req.params;
         const { employeeLat, employeeLong, status } = req.body;
         const allowedRadius = 100; // Allowed proximity range (in meters)
+        console.log("employeeLat, employeeLong: ", scheduleId, dealerId, employeeLat, employeeLong, status)
 
         if (!scheduleId || !dealerId || !employeeLat || !employeeLong || !status) {
             return res.status(400).json({ error: "Missing required parameters." });
