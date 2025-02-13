@@ -458,7 +458,7 @@ exports.updateDealerStatusWithProximity = async (req, res) => {
         const distance = calculateDistance(employeeLat, employeeLong, dealerLat, dealerLong);
 
         if (distance > allowedRadius) {
-            return res.status(403).json({
+            return res.status(200).json({
                 error: "You are too far from the dealer's location.",
                 distanceFromDealer: distance.toFixed(2) + " meters"
             });
