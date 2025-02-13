@@ -115,7 +115,7 @@ exports.addWeeklyBeatMappingSchedule = async (req, res) => {
 
 exports.getWeeklyBeatMappingScheduleByUserCodeAndDate = async (req, res) => {
     try {
-        const { code } = req.params;
+        const { code } = req;
         
         let { startDate, endDate } = req.query; // Optional date range
         console.log("code, Startdate, endDate: ", code, startDate, endDate);
