@@ -420,12 +420,88 @@ exports.addWeeklyBeatMappingFromCSV = async (req, res) => {
 //     }
 // };
 
+// exports.updateDealerStatusWithProximity = async (req, res) => {
+//     try {
+//         const { scheduleId, dealerId } = req.params;
+//         const { employeeLat, employeeLong, status } = req.body;
+//         const allowedRadius = 100; // Allowed proximity range (in meters)
+//         console.log("employeeLat, employeeLong: ", scheduleId, dealerId, employeeLat, employeeLong, status)
+
+//         if (!scheduleId || !dealerId || !employeeLat || !employeeLong || !status) {
+//             return res.status(400).json({ error: "Missing required parameters." });
+//         }
+
+//         // Find the schedule entry
+//         const schedule = await WeeklyBeatMappingSchedule.findById(scheduleId);
+//         if (!schedule) return res.status(404).json({ error: "Schedule not found." });
+
+//         // Find the dealer entry inside the schedule
+//         let dealerEntry = null;
+//         let dayFound = null;
+
+//         Object.keys(schedule.schedule).forEach(day => {
+//             schedule.schedule[day].forEach(dealer => {
+//                 if (dealer._id.toString() === dealerId) {
+//                     dealerEntry = dealer;
+//                     dayFound = day;
+//                 }
+//             });
+//         });
+
+//         if (!dealerEntry) return res.status(404).json({ error: "Dealer entry not found in schedule." });
+
+//         // Get dealer's latitude and longitude
+//         const dealerLat = parseFloat(dealerEntry.lat);
+//         const dealerLong = parseFloat(dealerEntry.long);
+
+//         // Calculate distance
+//         const distance = calculateDistance(employeeLat, employeeLong, dealerLat, dealerLong);
+
+//         if (distance > allowedRadius) {
+//             return res.status(200).json({
+//                 error: "You are too far from the dealer's location.",
+//                 distanceFromDealer: distance.toFixed(2) + " meters"
+//             });
+//         }
+
+//         // Use findOneAndUpdate to directly update the status and distance in the database
+//         const updatePath = `schedule.${dayFound}.$[elem]`;
+
+//         const updatedSchedule = await WeeklyBeatMappingSchedule.findOneAndUpdate(
+//             { _id: scheduleId },
+//             {
+//                 $set: {
+//                     [`${updatePath}.status`]: status,
+//                     [`${updatePath}.distance`]: `${distance.toFixed(2)} meters`
+//                 }
+//             },
+//             {
+//                 arrayFilters: [{ "elem._id": new mongoose.Types.ObjectId(dealerId) }],
+//                 new: true
+//             }
+//         );
+
+//         if (!updatedSchedule) {
+//             return res.status(500).json({ error: "Failed to update dealer status." });
+//         }
+
+//         return res.status(200).json({
+//             message: "Dealer status updated successfully.",
+//             updatedDistance: `${distance.toFixed(2)} meters`,
+//             data: updatedSchedule
+//         });
+
+//     } catch (error) {
+//         console.error("Error updating dealer status:", error);
+//         return res.status(500).json({ error: "Internal server error." });
+//     }
+// };
+
 exports.updateDealerStatusWithProximity = async (req, res) => {
     try {
         const { scheduleId, dealerId } = req.params;
         const { employeeLat, employeeLong, status } = req.body;
         const allowedRadius = 100; // Allowed proximity range (in meters)
-        console.log("employeeLat, employeeLong: ", scheduleId, dealerId, employeeLat, employeeLong, status)
 
         if (!scheduleId || !dealerId || !employeeLat || !employeeLong || !status) {
             return res.status(400).json({ error: "Missing required parameters." });
@@ -464,9 +540,8 @@ exports.updateDealerStatusWithProximity = async (req, res) => {
             });
         }
 
-        // Use findOneAndUpdate to directly update the status and distance in the database
+        // Update the dealer's status and distance
         const updatePath = `schedule.${dayFound}.$[elem]`;
-
         const updatedSchedule = await WeeklyBeatMappingSchedule.findOneAndUpdate(
             { _id: scheduleId },
             {
@@ -485,9 +560,35 @@ exports.updateDealerStatusWithProximity = async (req, res) => {
             return res.status(500).json({ error: "Failed to update dealer status." });
         }
 
+        // Recalculate the pending, done, and total counts
+        let pendingCount = 0;
+        let doneCount = 0;
+        let totalCount = 0;
+
+        Object.values(updatedSchedule.schedule).forEach(dayDealers => {
+            dayDealers.forEach(dealer => {
+                totalCount++; // Total dealers in schedule
+                if (dealer.status === "done") {
+                    doneCount++;
+                } else {
+                    pendingCount++;
+                }
+            });
+        });
+
+        // Update these counts in the schedule document
+        await WeeklyBeatMappingSchedule.findByIdAndUpdate(scheduleId, {
+            $set: {
+                pending: pendingCount,
+                done: doneCount,
+                total: totalCount
+            }
+        });
+
         return res.status(200).json({
             message: "Dealer status updated successfully.",
             updatedDistance: `${distance.toFixed(2)} meters`,
+            updatedCounts: { pending: pendingCount, done: doneCount, total: totalCount },
             data: updatedSchedule
         });
 
@@ -496,4 +597,3 @@ exports.updateDealerStatusWithProximity = async (req, res) => {
         return res.status(500).json({ error: "Internal server error." });
     }
 };
-
